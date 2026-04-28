@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Subscription Confirmed — MO DNR Air Permits{% endblock %}
+{% block content %}
+<div class="container" style="max-width:540px;text-align:center;padding-top:60px;">
+  {% if error %}
+  <div style="font-size:3rem;">⚠️</div>
+  <h1 style="color:var(--navy);margin:16px 0 8px;">Invalid or Expired Link</h1>
+  <p style="color:var(--muted);">This verification link is no longer valid.
+    <a href="/subscribe">Subscribe again</a> to get a fresh link.
+  </p>
+  {% else %}
+  <div style="font-size:3rem;">✅</div>
+  <h1 style="color:var(--navy);margin:16px 0 8px;">You're subscribed!</h1>
+  <p style="color:var(--muted);margin-bottom:24px;">
+    You'll receive email alerts whenever new air quality permits matching your filters are issued.
+  </p>
+  <a href="/" class="btn btn-primary">Browse Permits</a>
+  {% endif %}
+</div>
+{% endblock %}

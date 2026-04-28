@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Subscribe — MO DNR Air Permits{% endblock %}
+{% block content %}
+<div class="container" style="max-width:620px;">
+  <div class="page-header">
+    <h1>Subscribe to Permit Alerts</h1>
+    <p>Get email notifications when new air quality permits are issued in Missouri.</p>
+  </div>
+
+  {% if success %}
+  <div class="alert alert-success">
+    <strong>Check your inbox!</strong> We've sent a confirmation email. Click the link to activate your subscription.
+  </div>
+  {% elif error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  {% if not success %}
+  <div class="card">
+    <form action="/subscribe" method="post">
+
+      <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" name="email" required placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+        <label>Filter by County <span style="color:var(--muted);font-weight:400;">(optional — leave empty for all counties)</span></label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:240px;overflow-y:auto;
+                    border:1px solid var(--border);border-radius:6px;padding:10px;">
+          {% for c in counties %}
+          <label style="font-weight:400;font-size:.82rem;display:flex;align-items:center;gap:5px;cursor:pointer;">
+            <input type="checkbox" name="county_filter" value="{{ c }}"> {{ c }}
+          </label>
+          {% endfor %}
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:4px;">Leave all unchecked to receive alerts for all counties.</p>
+      </div>
+
+      <div class="form-group">
+        <label>Filter by Permit Type <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+          {% for label, value in permit_type_groups.items() %}
+          <label style="font-weight:400;font-size:.85rem;display:flex;align-items:center;gap:5px;cursor:pointer;
+                         padding:4px 10px;border:1px solid var(--border);border-radius:16px;">
+            <input type="checkbox" name="type_filter" value="{{ value }}"> {{ label }}
+          </label>
+          {% endfor %}
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:4px;">Leave all unchecked to receive all permit types.</p>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;">
+        Subscribe
+      </button>
+    </form>
+  </div>
+
+  <div class="alert alert-info" style="margin-top:16px;">
+    <strong>Privacy:</strong> Your email is only used to send permit alerts.
+    Every email includes a one-click unsubscribe link.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

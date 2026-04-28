@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ permit.facility_name }} — MO DNR Air Permits{% endblock %}
+{% block content %}
+<div class="container" style="max-width:800px;">
+  <div style="margin-bottom:20px;">
+    <a href="javascript:history.back()" style="color:var(--muted);font-size:.875rem;">← Back</a>
+  </div>
+
+  <div class="page-header">
+    <h1>{{ permit.facility_name }}</h1>
+    <p>{{ permit.permit_type | permit_badge }}</p>
+  </div>
+
+  <div class="card">
+    <dl style="display:grid;grid-template-columns:180px 1fr;gap:12px 20px;font-size:.9rem;">
+
+      <dt style="color:var(--muted);font-weight:600;">Permit Number</dt>
+      <dd style="font-family:monospace;font-size:1rem;font-weight:700;">{{ permit.permit_number }}</dd>
+
+      <dt style="color:var(--muted);font-weight:600;">Site ID</dt>
+      <dd>{{ permit.site_id or '—' }}</dd>
+
+      <dt style="color:var(--muted);font-weight:600;">Permit Type</dt>
+      <dd>{{ permit.permit_type }}</dd>
+
+      <dt style="color:var(--muted);font-weight:600;">Date Issued</dt>
+      <dd>{{ permit.date_issued or '—' }}</dd>
+
+      <dt style="color:var(--muted);font-weight:600;">City</dt>
+      <dd>{{ permit.city or '—' }}</dd>
+
+      <dt style="color:var(--muted);font-weight:600;">County</dt>
+      <dd>{{ permit.county or '—' }}</dd>
+
+      <dt style="color:var(--muted);font-weight:600;">First Tracked</dt>
+      <dd>{{ permit.first_seen[:10] if permit.first_seen else '—' }}</dd>
+
+    </dl>
+  </div>
+
+  {% if permit.dnr_url %}
+  <div class="card" style="background:#f0f6fb;border-color:#aed6f1;">
+    <p style="font-size:.9rem;color:var(--blue);margin-bottom:10px;">
+      <strong>View full permit details on the Missouri DNR website:</strong>
+    </p>
+    <a href="{{ permit.dnr_url }}" target="_blank" rel="noopener"
+       class="btn btn-primary">
+      Open on dnr.mo.gov ↗
+    </a>
+    <p style="font-size:.78rem;color:var(--muted);margin-top:10px;">
+      The DNR page may include permit documents, conditions, and compliance history.
+    </p>
+  </div>
+  {% endif %}
+
+  <div style="margin-top:20px;display:flex;gap:12px;">
+    <a href="/search?county={{ permit.county }}" class="btn btn-outline" style="font-size:.85rem;">
+      More permits in {{ permit.county }}
+    </a>
+    <a href="/search?type={{ permit.permit_type }}" class="btn btn-outline" style="font-size:.85rem;">
+      More {{ permit.permit_type }} permits
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Unsubscribed — MO DNR Air Permits{% endblock %}
+{% block content %}
+<div class="container" style="max-width:540px;text-align:center;padding-top:60px;">
+  {% if error %}
+  <div style="font-size:3rem;">⚠️</div>
+  <h1 style="color:var(--navy);margin:16px 0 8px;">Link Not Found</h1>
+  <p style="color:var(--muted);">
+    This unsubscribe link is invalid or already been used.
+    <a href="/subscribe">Contact us</a> if you're still receiving emails.
+  </p>
+  {% else %}
+  <div style="font-size:3rem;">👋</div>
+  <h1 style="color:var(--navy);margin:16px 0 8px;">You've been unsubscribed</h1>
+  <p style="color:var(--muted);margin-bottom:24px;">
+    You won't receive any more permit alerts. You can re-subscribe at any time.
+  </p>
+  <a href="/subscribe" class="btn btn-outline">Re-subscribe</a>
+  {% endif %}
+</div>
+{% endblock %}
