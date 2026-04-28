@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Pending Applications — MO DNR Air Permits{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>Pending Permit Applications</h1>
+    <p>Applications that have been filed but not yet issued. ~320 active applications.</p>
+  </div>
+
+  <div class="card">
+    <form action="/pending" method="get">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Facility / Application # / Site ID</label>
+          <input type="text" name="q" value="{{ q }}" placeholder="e.g. Tyson, 2026-04-023">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>County</label>
+          <select name="county">
+            <option value="">All Counties</option>
+            {% for c in counties %}
+            <option value="{{ c }}" {% if county == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Permit Type</label>
+          <select name="type">
+            <option value="">All Types</option>
+            {% for label, value in permit_type_groups.items() %}
+            <option value="{{ value }}" {% if ptype == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a href="/pending" class="btn btn-outline">Clear</a>
+      </div>
+    </form>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <p style="color:var(--muted);font-size:.875rem;">
+      {% if total == 0 %}No results.
+      {% elif total == 1 %}1 application found.
+      {% else %}{{ "{:,}".format(total) }} applications found.
+        Showing {{ (page-1)*25 + 1 }}–{{ [(page-1)*25 + applications|length, total]|min }}.
+      {% endif %}
+    </p>
+    <a href="/search" style="font-size:.85rem;">View issued permits →</a>
+  </div>
+
+  {% if applications %}
+  <div class="table-wrap card" style="padding:0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Facility</th>
+          <th>Application #</th>
+          <th>Site ID</th>
+          <th>Location</th>
+          <th>Type</th>
+          <th>Date Complete</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in applications %}
+        <tr>
+          <td>
+            {% if a.dnr_url %}
+              <a href="{{ a.dnr_url }}" target="_blank" rel="noopener">{{ a.facility_name }}</a>
+            {% else %}
+              {{ a.facility_name }}
+            {% endif %}
+          </td>
+          <td style="font-family:monospace;font-size:.82rem;">{{ a.application_number }}</td>
+          <td style="font-size:.82rem;color:var(--muted);">{{ a.site_id }}</td>
+          <td style="white-space:nowrap;">
+            {% if a.city %}{{ a.city }},{% endif %} {{ a.county }}
+          </td>
+          <td>{{ a.permit_type | permit_badge }}</td>
+          <td style="white-space:nowrap;">{{ a.date_complete }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if total_pages > 1 %}
+  <div class="pagination">
+    {% if page > 1 %}
+    <a href="?q={{ q }}&county={{ county }}&type={{ ptype }}&page={{ page - 1 }}">&laquo; Prev</a>
+    {% endif %}
+    {% for p in range([1, page-2]|max, [total_pages+1, page+3]|min) %}
+      {% if p == page %}<span class="current">{{ p }}</span>
+      {% else %}<a href="?q={{ q }}&county={{ county }}&type={{ ptype }}&page={{ p }}">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page < total_pages %}
+    <a href="?q={{ q }}&county={{ county }}&type={{ ptype }}&page={{ page + 1 }}">Next &raquo;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="alert alert-info">
+    No pending applications found{% if q or county or ptype %} matching your filters{% endif %}.
+    {% if not q and not county and not ptype %}
+    Try running a sync first: <code>curl -X POST http://localhost:8003/api/sync/pending</code>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

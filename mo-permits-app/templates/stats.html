@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Statistics — MO DNR Air Permits{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>Database Statistics</h1>
+    <p>Summary of tracked Missouri DNR air quality permits.</p>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="num">{{ "{:,}".format(total) }}</div>
+      <div class="lbl">Total Permits</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ subscribers }}</div>
+      <div class="lbl">Active Subscribers</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ by_type|length }}</div>
+      <div class="lbl">Permit Types</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ by_county|length }}</div>
+      <div class="lbl">Counties (top 25)</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div class="card">
+      <h2 style="font-size:1rem;color:var(--navy);margin-bottom:14px;">Permits by Type</h2>
+      {% for row in by_type %}
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:6px 0;border-bottom:1px solid var(--border);font-size:.875rem;">
+        <span>{{ row.permit_type | permit_badge }}</span>
+        <strong style="color:var(--blue);">{{ "{:,}".format(row.cnt) }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:20px;">
+        <h2 style="font-size:1rem;color:var(--navy);margin-bottom:14px;">Permits by Year</h2>
+        {% for row in by_year %}
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:5px 0;border-bottom:1px solid var(--border);font-size:.875rem;">
+          <span style="color:var(--text);">{{ row.yr }}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:{{ (row.cnt / by_year[0].cnt * 120)|int }}px;height:8px;
+                         background:var(--mid);border-radius:4px;"></div>
+            <strong style="color:var(--blue);min-width:40px;text-align:right;">{{ "{:,}".format(row.cnt) }}</strong>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="card">
+        <h2 style="font-size:1rem;color:var(--navy);margin-bottom:14px;">Top Counties</h2>
+        {% for row in by_county %}
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:5px 0;border-bottom:1px solid var(--border);font-size:.875rem;">
+          <a href="/search?county={{ row.county }}">{{ row.county }}</a>
+          <strong style="color:var(--blue);">{{ "{:,}".format(row.cnt) }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
