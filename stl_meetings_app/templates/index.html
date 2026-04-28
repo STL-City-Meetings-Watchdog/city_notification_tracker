@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}STL Meetings - City of St. Louis Public Meeting Archive{% endblock %}
+{% block content %}
+<p style="font-size:0.85rem;color:#888;margin-bottom:8px;font-style:italic">An unofficial meeting archive and subscription platform by <a href="https://veiledprofits.com" style="color:#888">VeiledProfits.com</a></p>
+<p style="font-size:1.1rem;color:#555;margin-bottom:30px">Tracking public meetings for the City of St. Louis. <a href="/subscribe">Subscribe</a> to get notified.</p>
+<form action="/search" method="get" class="search-box">
+    <input type="text" name="q" placeholder="Search meetings...">
+    <button type="submit" class="btn">Search</button>
+</form>
+<h2>Upcoming Meetings</h2>
+{% if upcoming %}{% for meeting in upcoming %}
+<div class="meeting-card">
+    <h3><a href="/meeting/{{ meeting.id }}">{{ meeting.title }}</a></h3>
+    <div class="meeting-meta">
+        <span>📅 {{ meeting.start_time[:16] if meeting.start_time else 'TBD' }}</span>
+        <span>📍 {{ meeting.location or 'See details' }}</span>
+        {% if meeting.sponsor %}<span>🏛️ {{ meeting.sponsor }}</span>{% endif %}
+    </div>
+</div>
+{% endfor %}{% else %}<p>No upcoming meetings found.</p>{% endif %}
+<h2 style="margin-top:40px">Recent Past Meetings</h2>
+{% if past %}{% for meeting in past %}
+<div class="meeting-card">
+    <h3><a href="/meeting/{{ meeting.id }}">{{ meeting.title }}</a></h3>
+    <div class="meeting-meta">
+        <span>📅 {{ meeting.start_time[:16] if meeting.start_time else 'TBD' }}</span>
+        {% if meeting.sponsor %}<span>🏛️ {{ meeting.sponsor }}</span>{% endif %}
+    </div>
+</div>
+{% endfor %}{% else %}<p>No past meetings yet.</p>{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Subscribe - STL Meetings{% endblock %}
+{% block content %}
+<h2>Subscribe to Meeting Notifications</h2>
+<p style="margin-bottom:30px">Get email notifications when new meetings are posted.</p>
+{% if success %}<div class="alert alert-success"><strong>Check your email!</strong> We sent a confirmation link.</div>{% endif %}
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+{% if not success %}
+<form method="post" class="subscribe-form">
+    <label for="email">Email Address</label>
+    <input type="email" id="email" name="email" required placeholder="you@example.com">
+    <label for="boards">Which meetings?</label>
+    <select id="boards" name="boards">
+        <option value="all">All meetings</option>
+        <option value="aldermen">Board of Aldermen</option>
+        <option value="sldc,lcra,piea,tif">Development (SLDC, LCRA, etc.)</option>
+        <option value="zoning,planning">Zoning & Planning</option>
+    </select>
+    <button type="submit" class="btn">Subscribe</button>
+</form>
+{% endif %}
+{% endblock %}

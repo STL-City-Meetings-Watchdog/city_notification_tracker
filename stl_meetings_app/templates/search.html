@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Search - STL Meetings{% endblock %}
+{% block content %}
+<h2>Search Meetings</h2>
+<form action="/search" method="get" class="search-box">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search...">
+    <button type="submit" class="btn">Search</button>
+</form>
+{% if query %}<p style="margin-bottom:20px;color:#666">Found {{ results|length }} result(s) for "{{ query }}"</p>
+{% for meeting in results %}
+<div class="meeting-card">
+    <h3><a href="/meeting/{{ meeting.id }}">{{ meeting.title }}</a></h3>
+    <div class="meeting-meta"><span>📅 {{ meeting.start_time[:16] if meeting.start_time else 'TBD' }}</span></div>
+</div>
+{% endfor %}{% endif %}
+{% endblock %}
