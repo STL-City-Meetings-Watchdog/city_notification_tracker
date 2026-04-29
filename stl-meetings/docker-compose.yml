@@ -1,0 +1,22 @@
+services:
+  app:
+    build: ./app
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - BASE_URL=https://stlmeetings.veiledprofits.com
+    volumes:
+      - ./data:/app/data
+      - ./data/pdfs:/app/pdfs
+    networks:
+      - default
+      - npm_default
+
+networks:
+  npm_default:
+    external: true
