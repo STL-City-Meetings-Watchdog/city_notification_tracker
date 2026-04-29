@@ -1,0 +1,23 @@
+services:
+  app:
+    build: ./app
+    restart: unless-stopped
+    container_name: mo-permits-app
+    ports:
+      - "8003:8000"
+    environment:
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - BASE_URL=https://mopermits.veiledprofits.com
+      - CF_PROXY_URL=${CF_PROXY_URL:-}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - default
+      - npm_default
+
+networks:
+  npm_default:
+    external: true
