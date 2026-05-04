@@ -1,0 +1,13 @@
+stlmeetings.veiledprofits.com {
+    handle /static/* {
+        root * /srv
+        file_server
+    }
+    handle /pdfs/* {
+        root * /srv
+        file_server browse
+    }
+    handle /* {
+        reverse_proxy app:8000
+    }
+}

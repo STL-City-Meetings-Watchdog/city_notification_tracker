@@ -1,0 +1,24 @@
+services:
+  app:
+    build: ./app
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    environment:
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - BASE_URL=${BASE_URL}
+      - PROXY_BASE=${PROXY_BASE}
+      - DIGEST_HOUR=${DIGEST_HOUR:-7}
+      - SYNC_INTERVAL_HOURS=${SYNC_INTERVAL_HOURS:-6}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - default
+      - npm_default
+
+networks:
+  npm_default:
+    external: true
