@@ -3,16 +3,18 @@ name: Docker Image CI
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    #branches: [ "main" ]
+    branches: [ "condensing_docker_compose" ]
     paths-ignore: 
-      '.github/**'
-      '.gitignore'
-      '.editorconfig'
-      '.LICENSE.md'
-      'README.md'
-      '**docker-compose.yml'
+      - '.github/**'
+      - '.gitignore'
+      - '.editorconfig'
+      - '.LICENSE.md'
+      - 'README.md'
+      - '**docker-compose.yml'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "condensing_docker_compose" ]
+    #turn the above branch back to main later
 
 jobs:
 
@@ -21,13 +23,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    -name: Checkout repository
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
     - name: Build the Docker image
     #need to check that these containers do spin up like they are supposed to,
     #and that this is all the containers we need to run
-      run: docker build . --file Dockerfile --tag mo-permits-app:$(date +%s)
-      run: docker build . --file Dockerfile --tag stl-permits-app:$(date +%s)
-      run: docker build . --file Dockerfile --tag mo-meetings-app:$(date +%s)
-      run: docker build . --file Dockerfile --tag mo-permits-app:$(date +%s)
+      run: docker compose up -d # I added this but this is a guess 
+      #as to how to run docker compose to get it to do everything that I want
+
       
