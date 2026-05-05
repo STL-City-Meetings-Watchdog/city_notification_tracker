@@ -1,0 +1,61 @@
+services:
+  stl-meetings:
+    build: ./stl-meetings/app
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - BASE_URL=https://stlmeetings.veiledprofits.com
+    volumes:
+      - ./stl-meetings/data:/app/data
+      - ./stl-meetings/data/pdfs:/app/pdfs
+    networks:
+      - default
+      - npm_default
+
+  stl-permits:
+    build: ./stl-permits/app
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    environment:
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - BASE_URL=${STL_PERMITS_BASE_URL}
+      - PROXY_BASE=${STL_PERMITS_PROXY_BASE}
+      - DIGEST_HOUR=${DIGEST_HOUR:-7}
+      - SYNC_INTERVAL_HOURS=${SYNC_INTERVAL_HOURS:-6}
+    volumes:
+      - ./stl-permits/data:/app/data
+    networks:
+      - default
+      - npm_default
+
+  mo-permits:
+    build: ./mo-permits/app
+    restart: unless-stopped
+    container_name: mo-permits-app
+    ports:
+      - "8003:8000"
+    environment:
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - BASE_URL=https://mopermits.veiledprofits.com
+      - CF_PROXY_URL=${CF_PROXY_URL:-}
+    volumes:
+      - ./mo-permits/data:/app/data
+    networks:
+      - default
+      - npm_default
+
+networks:
+  npm_default:
+    external: true
