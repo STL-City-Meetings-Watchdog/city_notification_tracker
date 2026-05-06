@@ -7,8 +7,8 @@ services:
     environment:
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_USER=${STL_MEETINGS_SMTP_USER}
+      - SMTP_PASS=${STL_MEETINGS_SMTP_PASS}
       - BASE_URL=https://stlmeetings.veiledprofits.com
     volumes:
       - ./stl-meetings/data:/app/data
@@ -25,8 +25,8 @@ services:
     environment:
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_USER=${STL_PERMITS_SMTP_USER}
+      - SMTP_PASS=${STL_PERMITS_SMTP_PASS}
       - BASE_URL=${STL_PERMITS_BASE_URL}
       - PROXY_BASE=${STL_PERMITS_PROXY_BASE}
       - DIGEST_HOUR=${DIGEST_HOUR:-7}
@@ -46,8 +46,8 @@ services:
     environment:
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_USER=${MO_PERMITS_SMTP_USER}
+      - SMTP_PASS=${MO_PERMITS_SMTP_PASS}
       - BASE_URL=https://mopermits.veiledprofits.com
       - CF_PROXY_URL=${CF_PROXY_URL:-}
     volumes:
