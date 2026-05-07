@@ -19,7 +19,7 @@ I installed `uv` from their installation page, then installed the correct python
 1. For each of `stl-meetings`, `stl-permits`, and `mo-permits`, `cd` to that directory then:
     ```
     cd app
-    uv python install cpython-3.14.4-linux-x86_64-gnu # The version string will be different on Mac
+    uv venv --python cpython-3.13.4-linux-x86_64-gnu # edit the version string according to your OS
     echo ".venv/bin/python" > .python-version
     direnv allow
     uv sync # should print satisfying logs about installing packages
