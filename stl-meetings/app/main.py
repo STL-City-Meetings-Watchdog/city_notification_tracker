@@ -28,6 +28,7 @@ SMTP_PORT = int(os.environ.get("SMTP_PORT", 465))
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 app = Flask(__name__, template_folder="/app/templates")
