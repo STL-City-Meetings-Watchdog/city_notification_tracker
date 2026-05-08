@@ -23,7 +23,7 @@ jobs:
     - name: Build the Docker image
     #need to check that these containers do spin up like they are supposed to,
     #and that this is all the containers we need to run
-      run: docker compose up -d # I added this but this is a guess 
+      run: docker compose up --build --detach
       #as to how to run docker compose to get it to do everything that I want
 
       
