@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, sans-serif; max-width: 540px; margin: 0 auto; padding: 2rem; color: #1a1a1a;">
+  <h2 style="margin-top:0">Confirm your STL Permits subscription</h2>
+  <p>Click below to start getting the daily digest of St. Louis building permits.</p>
+  <p>
+    <a href="{{ verify_url }}"
+       style="display:inline-block; padding: 0.75rem 1.25rem; background:#8b1e2d; color:white; text-decoration:none; border-radius:4px; font-weight:600;">
+      Confirm subscription
+    </a>
+  </p>
+  <p style="color:#666; font-size: 0.85rem;">Or paste this link into your browser:<br>
+    <span style="word-break:break-all">{{ verify_url }}</span>
+  </p>
+  <hr style="border:0; border-top:1px solid #eee; margin: 2rem 0;">
+  <p style="color:#999; font-size:0.8rem;">
+    You're getting this because someone asked to subscribe this address.
+    If that wasn't you, ignore this email or <a href="{{ unsub_url }}" style="color:#999">unsubscribe immediately</a>.
+  </p>
+</body>
+</html>

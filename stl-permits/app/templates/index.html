@@ -1,81 +1,40 @@
 {% extends "base.html" %}
-{% block title %}MO DNR Air Quality Permits — Home{% endblock %}
-{% block content %}
-<div class="container">
-  <div class="page-header">
-    <h1>Missouri DNR Air Quality Permits</h1>
-    <p>Tracking issued air quality permits from the Missouri Department of Natural Resources.</p>
-  </div>
-
-  <div class="stat-grid">
-    <div class="stat-card">
-      <div class="num">{{ "{:,}".format(total) }}</div>
-      <div class="lbl">Total Permits</div>
+{% block title %}Recent Permits — STL Permits{% endblock %}
+{% block body %}
+  <div class="stats">
+    <div class="stat">
+      <div class="n">{{ stats.total | int }}</div>
+      <div class="l">Permits tracked</div>
     </div>
-    <div class="stat-card">
-      <div class="num">{{ permits|length }}</div>
-      <div class="lbl">Shown (Recent)</div>
+    <div class="stat">
+      <div class="n">{{ stats.total_cost | money }}</div>
+      <div class="l">Total project value</div>
     </div>
-    {% if last_sync %}
-    <div class="stat-card">
-      <div class="num" style="font-size:1rem;">{{ last_sync[:10] }}</div>
-      <div class="lbl">Last Synced</div>
-    </div>
-    {% endif %}
-    <div class="stat-card" style="cursor:pointer;" onclick="window.location='/subscribe'">
-      <div class="num" style="font-size:1.4rem;">&#128276;</div>
-      <div class="lbl">Get Email Alerts</div>
+    <div class="stat">
+      <div class="n">{{ stats.latest_issue | pretty_date }}</div>
+      <div class="l">Most recent issue date</div>
     </div>
   </div>
 
-  <div class="card" style="padding:16px 20px;margin-bottom:24px;">
-    <form action="/search" method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-      <div style="flex:1;min-width:220px;">
-        <label style="font-size:.8rem;margin-bottom:4px;">Search Facility / Permit #</label>
-        <input type="text" name="q" placeholder="e.g. 3M Co., 052000-005" style="width:100%;">
+  <h2 style="margin-top:0">Most recent 50</h2>
+
+  {% for p in recent %}
+    <div class="card">
+      <h3>
+        <a href="{{ url_for('permit_detail', permit_id=p.id) }}">{{ p.address }}</a>
+      </h3>
+      <div class="meta">
+        <span class="pill">{{ p.project_type or '—' }}</span>
+        Issued {{ p.issue_date | pretty_date }}
+        · Applied {{ p.application_date | pretty_date }}
+        {% if p.days_to_issue is not none %}· {{ p.days_to_issue }} days to issue{% endif %}
+        · <span class="cost">{{ p.est_project_cost | money }}</span>
       </div>
-      <button type="submit" class="btn btn-primary">Search</button>
-      <a href="/search" class="btn btn-outline">Advanced</a>
-    </form>
-  </div>
+      {% if p.application_description %}
+        <p class="desc">{{ p.application_description[:200] }}{% if p.application_description|length > 200 %}…{% endif %}</p>
+      {% endif %}
+    </div>
+  {% endfor %}
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <h2 style="font-size:1.1rem;color:var(--navy);">50 Most Recently Issued Permits</h2>
-    <a href="/search" style="font-size:.85rem;">View all →</a>
-  </div>
-
-  <div class="table-wrap card" style="padding:0;">
-    <table>
-      <thead>
-        <tr>
-          <th>Facility</th>
-          <th>Permit #</th>
-          <th>Location</th>
-          <th>Type</th>
-          <th>Date Issued</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in permits %}
-        <tr>
-          <td>
-            <a href="/permits/{{ p.permit_number | permit_slug }}">{{ p.facility_name }}</a>
-          </td>
-          <td style="font-family:monospace;font-size:.82rem;">{{ p.permit_number }}</td>
-          <td style="white-space:nowrap;">
-            {% if p.city %}{{ p.city }},{% endif %} {{ p.county }}
-          </td>
-          <td>{{ p.permit_type | permit_badge }}</td>
-          <td style="white-space:nowrap;">{{ p.date_issued }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">
-          No permits yet — run a sync to populate the database.
-        </td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
+  <p style="margin-top:1.5rem"><a href="{{ url_for('search') }}">Search all permits →</a></p>
 {% endblock %}
