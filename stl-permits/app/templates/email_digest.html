@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, sans-serif; max-width: 720px; margin: 0 auto; padding: 1.5rem; color: #1a1a1a;">
+  <div style="border-bottom: 2px solid #1a1a1a; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+    <h1 style="margin:0; font-size: 1.4rem;">STL Permits — {{ digest_date }}</h1>
+    <div style="color:#666; font-size: 0.95rem; margin-top: 0.35rem;">
+      <strong>{{ permit_count }}</strong> new permit{{ '' if permit_count == 1 else 's' }}
+      · est. project value <strong>${{ '{:,.0f}'.format(total_cost) }}</strong>
+    </div>
+  </div>
+
+  {% set top5 = permits[:5] %}
+  {% if top5|length >= 2 %}
+    <h2 style="font-size: 1.05rem; margin: 1rem 0 0.5rem; color: #8b1e2d;">Highlights (top by cost)</h2>
+    {% for p in top5 %}
+      <div style="border-left: 3px solid #8b1e2d; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; background: #fafafa;">
+        <div style="font-weight: 600;"><a href="{{ base_url }}/permit/{{ p.id }}" style="color:#1a1a1a; text-decoration:none;">{{ p.address }}</a></div>
+        <div style="font-size: 0.85rem; color: #666;">
+          {{ p.project_type or '—' }} ·
+          {% if p.est_project_cost %}${{ '{:,.0f}'.format(p.est_project_cost) }}{% else %}—{% endif %}
+          {% if p.days_to_issue is not none %}· {{ p.days_to_issue }}d lag{% endif %}
+        </div>
+        {% if p.application_description %}
+          <div style="font-size: 0.9rem; margin-top: 0.2rem;">{{ p.application_description[:160] }}{% if p.application_description|length > 160 %}…{% endif %}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <h2 style="font-size: 1.05rem; margin: 1.5rem 0 0.5rem;">All {{ permit_count }} permits</h2>
+  <table style="width:100%; border-collapse:collapse; font-size: 0.88rem;">
+    <thead>
+      <tr style="background:#f2f0eb;">
+        <th style="padding:0.4rem; text-align:left; border-bottom:1px solid #ddd;">Address</th>
+        <th style="padding:0.4rem; text-align:left; border-bottom:1px solid #ddd;">Type</th>
+        <th style="padding:0.4rem; text-align:right; border-bottom:1px solid #ddd;">Cost</th>
+        <th style="padding:0.4rem; text-align:left; border-bottom:1px solid #ddd;">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in permits %}
+        <tr>
+          <td style="padding:0.4rem; border-bottom:1px solid #eee; vertical-align:top;">
+            <a href="{{ base_url }}/permit/{{ p.id }}" style="color:#8b1e2d; text-decoration:none;">{{ p.address }}</a>
+          </td>
+          <td style="padding:0.4rem; border-bottom:1px solid #eee; vertical-align:top;">{{ p.project_type or '—' }}</td>
+          <td style="padding:0.4rem; border-bottom:1px solid #eee; text-align:right; vertical-align:top;">
+            {% if p.est_project_cost %}${{ '{:,.0f}'.format(p.est_project_cost) }}{% else %}—{% endif %}
+          </td>
+          <td style="padding:0.4rem; border-bottom:1px solid #eee; vertical-align:top; font-size: 0.85rem; color: #444;">
+            {{ (p.application_description or '')[:90] }}{% if p.application_description and p.application_description|length > 90 %}…{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p style="margin-top: 2rem;">
+    <a href="{{ base_url }}" style="color:#8b1e2d;">Browse the archive →</a>
+    &nbsp; · &nbsp;
+    <a href="{{ base_url }}/search" style="color:#8b1e2d;">Search →</a>
+  </p>
+
+  <hr style="border:0; border-top:1px solid #eee; margin: 2rem 0 1rem;">
+  <p style="color:#999; font-size:0.75rem;">
+    You're getting this because you subscribed at {{ base_url }}.
+    <a href="{{ unsub_url }}" style="color:#999;">Unsubscribe</a>.
+    Data from <a href="https://www.stlouis-mo.gov/data/datasets/dataset.cfm?id=1" style="color:#999;">City of St. Louis open data</a>.
+  </p>
+</body>
+</html>
