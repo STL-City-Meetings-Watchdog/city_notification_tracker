@@ -1,5 +1,6 @@
 services:
   stl-meetings:
+    container_name: stl-meetings-app-1
     build: ./stl-meetings/app
     restart: unless-stopped
     ports:
@@ -18,6 +19,7 @@ services:
       - npm_default
 
   stl-permits:
+    container_name: stl-permits-app-1
     build: ./stl-permits/app
     restart: unless-stopped
     ports:
