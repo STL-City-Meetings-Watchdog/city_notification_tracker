@@ -12,8 +12,8 @@ services:
       - SMTP_PASS=${STL_MEETINGS_SMTP_PASS}
       - BASE_URL=https://stlmeetings.veiledprofits.com
     volumes:
-      - ./stl-meetings/data:/app/data
-      - ./stl-meetings/data/pdfs:/app/pdfs
+      - /root/stl-meetings/data:/app/data
+      - /root/stl-meetings/data/pdfs:/app/pdfs
     networks:
       - default
       - npm_default
@@ -34,7 +34,7 @@ services:
       - DIGEST_HOUR=${DIGEST_HOUR:-7}
       - SYNC_INTERVAL_HOURS=${SYNC_INTERVAL_HOURS:-6}
     volumes:
-      - ./stl-permits/data:/app/data
+      - /root/stl-permits/data:/app/data
     networks:
       - default
       - npm_default
@@ -53,7 +53,7 @@ services:
       - BASE_URL=https://mopermits.veiledprofits.com
       - CF_PROXY_URL=${CF_PROXY_URL:-}
     volumes:
-      - ./mo-permits/data:/app/data
+      - /root/mo-permits/data:/app/data
     networks:
       - default
       - npm_default
