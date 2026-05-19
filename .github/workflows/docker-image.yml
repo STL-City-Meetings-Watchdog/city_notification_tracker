@@ -5,7 +5,6 @@ on:
   push:
     branches: [ "main", "condensing_docker_compose" ]
     paths-ignore: 
-      - '.github/**'
       - '.gitignore'
       - '.editorconfig'
       - '.LICENSE.md'
@@ -13,11 +12,24 @@ on:
 
 jobs:
   build:
+    environment: production
     runs-on: self-hosted
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Build the Docker image
       run: docker compose up --build --detach
-
+      env:
+        SMTP_HOST: ${{ vars.SMTP_HOST }}
+        SMTP_PORT: ${{ vars.SMTP_PORT }}
+        DIGEST_HOUR: ${{ vars.DIGEST_HOUR }}
+        SYNC_INTERVAL_HOURS: ${{ vars.SYNC_INTERVAL_HOURS }}
+        STL_PERMITS_BASE_URL: ${{ vars.STL_PERMITS_BASE_URL }}
+        STL_MEETINGS_SMTP_USER: ${{ secrets.STL_MEETINGS_SMTP_USER }}
+        STL_MEETINGS_SMTP_PASS: ${{ secrets.STL_MEETINGS_SMTP_PASS }}
+        STL_PERMITS_SMTP_USER: ${{ secrets.STL_PERMITS_SMTP_USER }}
+        STL_PERMITS_SMTP_PASS: ${{ secrets.STL_PERMITS_SMTP_PASS }}
+        STL_PERMITS_PROXY_BASE: ${{ secrets.STL_PERMITS_PROXY_BASE }}
+        MO_PERMITS_SMTP_USER: ${{ secrets.MO_PERMITS_SMTP_USER }}
+        MO_PERMITS_SMTP_PASS: ${{ secrets.MO_PERMITS_SMTP_PASS }}
       
