@@ -6,7 +6,7 @@ A website that keeps track of city meeting announcements, the agendas and minute
 We use `uv` and `direnv` to manage python virtual environments. 
 Currently since there are three basically indepenenent projects, each has its own independent python virtual environment. 
 
-At time of writing, the proper version of Python is mentioned only once anywhere in the project in the Onboarding section below.
+At time of writing, the proper version of Python is 3.14.5. This is mentioned numerous times in this file, as well as in the Dockerfiles. All should be synced manually, by you YES YOU typing. 
 
 ### Hostinger VPS Configuration
 I installed `uv` from their installation page, then installed the correct python version as detailed in the Onboarding section below. 
@@ -15,20 +15,37 @@ I installed `uv` from their installation page, then installed the correct python
 
 1. View the [uv docs](https://docs.astral.sh/uv/getting-started/installation/) and install `uv`.
 1. View the [direnv docs](https://direnv.net/docs/installation.html) and install `direnv`. TLDR on Mac: `brew install direnv`. Then do [hook installation](https://direnv.net/docs/hook.html). If you don't know if you're using `bash` or `zsh`, then know that on Linux you're probably using `bash`, and on Mac you're probably using `zsh`. 
-1. Have `uv` install the right python version - `3.14.4`. List the available versions with `uv python list` and install the right one with something like `uv python install cpython-3.14.4-linux-x86_64-gnu` (the version string will be different on Mac). 
+1. Have `uv` install the right python version - `3.14.5`. List the available versions with `uv python list` and install the right one with something like `uv python install cpython-3.14.5-linux-x86_64-gnu` (the version string will be different on Mac). 
 1. For each of `stl-meetings`, `stl-permits`, and `mo-permits`, `cd` to that directory then:
+
     ```
     cd app
-    uv venv --python cpython-3.13.4-linux-x86_64-gnu # edit the version string according to your OS
+    uv venv --python cpython-3.14.5-linux-x86_64-gnu # edit the version string according to your OS
     echo ".venv/bin/python" > .python-version
     direnv allow
     uv sync # should print satisfying logs about installing packages
     ```
 1. Test it. For each of `stl-meetings`, `stl-permits`, and `mo-permits`, `cd` to that directory's `app` subdir, then examine the output of `which python` - it should be something really long like `/home/dm/city_notification_tracker/stl-meetings/app/.venv/bin/python`, and definitely should not be something system-sounding like `/bin/python` or `/usr/bin/python`. 
 
+### Updating python / uv versions for local dev
+
+Try something along the lines of:
+
+```
+uv self update
+for d in stl-meetings stl-permits mo-permits; do
+  pushd $d/app
+  uv venv --python cpython-3.14.5-linux-x86_64-gnu # your version here
+  uv sync
+  popd
+done;
+
+```
+
 ### Adding python packages
 
-Use `uv add <packagename>`. Do not - **REPEAT DO NOT** - use `uv pip install <packagename>` - this doesn't properly update the `pyproject.toml` file and gets everybody's pythons out of sync. 
+Use `uv add <packagename>`. Do not - **REPEAT DO NOT** - use `uv pip install <packagename>` - this doesn't
+properly update the `pyproject.toml` file and gets everybody's pythons out of sync. 
 
 ## The Hostinger Virtual Private Server
 
