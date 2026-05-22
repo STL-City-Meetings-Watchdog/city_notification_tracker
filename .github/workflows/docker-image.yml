@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "condensing_docker_compose" ]
+    branches: [ "main", "uv2" ]
     paths-ignore: 
       - '.gitignore'
       - '.editorconfig'
