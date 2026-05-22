@@ -26,7 +26,7 @@ Companion to [stl-meetings](https://stlmeetings.veiledprofits.com) — same arch
 
 ## Prerequisites on the VPS
 
-Same VPS as stl-meetings (Hostinger KVM 4, 82.25.84.132). Assumes:
+Same VPS as stl-meetings (Hostinger KVM 4, `veil`). Assumes:
 
 - Docker + docker-compose
 - Nginx Proxy Manager running on `npm_default` Docker network (port 80/443)
@@ -35,7 +35,7 @@ Same VPS as stl-meetings (Hostinger KVM 4, 82.25.84.132). Assumes:
 ## Pre-deploy tasks (user)
 
 1. **Create mailbox** `permits@veiledprofits.com` in Hostinger email admin (or add as alias to existing box if mailbox count is at limit).
-2. **DNS**: `permits.veiledprofits.com` A-record → `82.25.84.132`.
+2. **DNS**: `permits.veiledprofits.com` A-record → ``veil``.
 3. **NPM proxy host** (in Nginx Proxy Manager):
    - Domain: `permits.veiledprofits.com`
    - Scheme: `http`
@@ -47,10 +47,10 @@ Same VPS as stl-meetings (Hostinger KVM 4, 82.25.84.132). Assumes:
 
 ```sh
 # 1. Copy project to VPS
-rsync -avz --exclude .env --exclude data /path/to/stl-permits/ root@82.25.84.132:/root/stl-permits/
+rsync -avz --exclude .env --exclude data /path/to/stl-permits/ root@veil:/root/stl-permits/
 
 # 2. SSH in
-ssh root@82.25.84.132
+ssh root@veil
 
 # 3. Create .env
 cd /root/stl-permits
