@@ -15,6 +15,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, a
 from bs4 import BeautifulSoup
 import requests
 
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
