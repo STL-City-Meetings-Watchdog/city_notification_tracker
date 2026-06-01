@@ -1,0 +1,18 @@
+# Open WebUI - proxied via NPM to ai.fearthedanimal.com
+# To update: cd /root/open-webui && docker compose pull && docker compose up -d
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui:/app/backend/data
+    restart: always
+
+volumes:
+  open-webui:
+    external: true
