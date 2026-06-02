@@ -3,8 +3,6 @@ services:
     container_name: stl-meetings-app-1
     build: ./stl-meetings/app
     restart: unless-stopped
-    ports:
-      - "8001:8000"
     environment:
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
@@ -16,14 +14,18 @@ services:
       - /root/stl-meetings/data/pdfs:/app/pdfs
     networks:
       - default
-      - npm_default
+      - traefik-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stl-meetings.rule=Host(`stlmeetings.veiledprofits.com`)"
+      - "traefik.http.routers.stl-meetings.entrypoints=websecure"
+      - "traefik.http.routers.stl-meetings.tls.certresolver=letsencrypt"
+      - "traefik.http.services.stl-meetings.loadbalancer.server.port=8000"
 
   stl-permits:
     container_name: stl-permits-app-1
     build: ./stl-permits/app
     restart: unless-stopped
-    ports:
-      - "8002:8000"
     environment:
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
@@ -37,14 +39,18 @@ services:
       - /root/stl-permits/data:/app/data
     networks:
       - default
-      - npm_default
+      - traefik-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stl-permits.rule=Host(`permits.veiledprofits.com`)"
+      - "traefik.http.routers.stl-permits.entrypoints=websecure"
+      - "traefik.http.routers.stl-permits.tls.certresolver=letsencrypt"
+      - "traefik.http.services.stl-permits.loadbalancer.server.port=8000"
 
   mo-permits:
+    container_name: mo-permits-app
     build: ./mo-permits/app
     restart: unless-stopped
-    container_name: mo-permits-app
-    ports:
-      - "8003:8000"
     environment:
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
@@ -56,8 +62,14 @@ services:
       - /root/mo-permits/data:/app/data
     networks:
       - default
-      - npm_default
+      - traefik-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mo-permits.rule=Host(`mopermits.veiledprofits.com`)"
+      - "traefik.http.routers.mo-permits.entrypoints=websecure"
+      - "traefik.http.routers.mo-permits.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mo-permits.loadbalancer.server.port=8000"
 
 networks:
-  npm_default:
+  traefik-proxy:
     external: true

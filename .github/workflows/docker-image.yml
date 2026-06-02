@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "uv2" ]
+    branches: [ "main", "f-25-ephemeral" ]
     paths-ignore: 
       - '.gitignore'
       - '.editorconfig'

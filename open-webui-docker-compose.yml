@@ -1,18 +1,29 @@
-# Open WebUI - proxied via NPM to ai.fearthedanimal.com
+# Open WebUI - proxied via Traefik to ai.fearthedanimal.com
 # To update: cd /root/open-webui && docker compose pull && docker compose up -d
+# "git push" does not redeploy this service
 
 services:
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
-    ports:
-      - "3000:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - open-webui:/app/backend/data
     restart: always
+    networks:
+      - traefik-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.open-webui.rule=Host(`ai.fearthedanimal.com`)"
+      - "traefik.http.routers.open-webui.entrypoints=websecure"
+      - "traefik.http.routers.open-webui.tls.certresolver=letsencrypt"
+      - "traefik.http.services.open-webui.loadbalancer.server.port=8080"
 
 volumes:
   open-webui:
+    external: true
+
+networks:
+  traefik-proxy:
     external: true
