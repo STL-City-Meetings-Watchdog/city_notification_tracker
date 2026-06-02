@@ -1,0 +1,17 @@
+name: production
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths-ignore: 
+      - '**/.gitignore'
+      - '**/README.md'
+
+jobs:
+  build:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      target_domain: veiledprofits.com
+    secrets: inherit

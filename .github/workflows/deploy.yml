@@ -1,18 +1,18 @@
-name: Docker Image CI
+name: docker compose up
 
 on:
-  workflow_dispatch:
-  push:
-    branches: [ "main", "f-25-ephemeral" ]
-    paths-ignore: 
-      - '.gitignore'
-      - '.editorconfig'
-      - '.LICENSE.md'
-      - 'README.md'
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      target_domain:
+        required: true
+        type: string
 
 jobs:
   build:
-    environment: production
+    environment: ${{ inputs.environment }}
     runs-on: self-hosted
     steps:
     - name: Checkout repository
@@ -24,7 +24,8 @@ jobs:
         SMTP_PORT: ${{ vars.SMTP_PORT }}
         DIGEST_HOUR: ${{ vars.DIGEST_HOUR }}
         SYNC_INTERVAL_HOURS: ${{ vars.SYNC_INTERVAL_HOURS }}
-        STL_PERMITS_BASE_URL: ${{ vars.STL_PERMITS_BASE_URL }}
+        # TODO: Delete this obsolete var from github secrets:
+        # STL_PERMITS_BASE_URL: ${{ vars.STL_PERMITS_BASE_URL }}
         STL_MEETINGS_SMTP_USER: ${{ secrets.STL_MEETINGS_SMTP_USER }}
         STL_MEETINGS_SMTP_PASS: ${{ secrets.STL_MEETINGS_SMTP_PASS }}
         STL_PERMITS_SMTP_USER: ${{ secrets.STL_PERMITS_SMTP_USER }}
@@ -32,4 +33,5 @@ jobs:
         STL_PERMITS_PROXY_BASE: ${{ secrets.STL_PERMITS_PROXY_BASE }}
         MO_PERMITS_SMTP_USER: ${{ secrets.MO_PERMITS_SMTP_USER }}
         MO_PERMITS_SMTP_PASS: ${{ secrets.MO_PERMITS_SMTP_PASS }}
+        TARGET_DOMAIN: ${{ inputs.target_domain }}
       

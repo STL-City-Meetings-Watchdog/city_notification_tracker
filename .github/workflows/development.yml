@@ -1,0 +1,33 @@
+name: development
+
+on:
+  push:
+    branches:
+      - 'f[0-9]+-*'
+    paths-ignore: 
+      - '**/.gitignore'
+      - '**/README.md'
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    outputs:
+      target_domain: ${{ steps.extract.outputs.target_domain }}
+    steps:
+    - name: Extract target_domain from branch
+      id: extract
+      run: |
+        MY_GITHUB_ISSUE_ID=$(echo "${{ github.ref_name }}" | sed -E 's/^f([0-9]+)-.*/\1/')
+        if [ -z "$MY_GITHUB_ISSUE_ID" ] || ! [[ "$MY_GITHUB_ISSUE_ID" =~ ^[0-9]+$ ]]; then
+          echo "Error: Invalid branch name format"
+          exit 1
+        fi
+        echo "target_domain=${MY_GITHUB_ISSUE_ID}.dev.veiledprofits.com" >> $GITHUB_OUTPUT
+
+  build:
+    needs: extract
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: development
+      target_domain: ${{ needs.extract.outputs.target_domain }}
+    secrets: inherit
