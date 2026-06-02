@@ -8,7 +8,7 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${STL_MEETINGS_SMTP_USER}
       - SMTP_PASS=${STL_MEETINGS_SMTP_PASS}
-      - BASE_URL=https://stlmeetings.veiledprofits.com
+      - BASE_URL=https://stlmeetings.${TARGET_DOMAIN}
     volumes:
       - /root/stl-meetings/data:/app/data
       - /root/stl-meetings/data/pdfs:/app/pdfs
@@ -17,7 +17,7 @@ services:
       - traefik-proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.stl-meetings.rule=Host(`stlmeetings.veiledprofits.com`)"
+      - "traefik.http.routers.stl-meetings.rule=Host(`stlmeetings.${TARGET_DOMAIN}`)"
       - "traefik.http.routers.stl-meetings.entrypoints=websecure"
       - "traefik.http.routers.stl-meetings.tls.certresolver=letsencrypt"
       - "traefik.http.services.stl-meetings.loadbalancer.server.port=8000"
@@ -31,7 +31,7 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${STL_PERMITS_SMTP_USER}
       - SMTP_PASS=${STL_PERMITS_SMTP_PASS}
-      - BASE_URL=${STL_PERMITS_BASE_URL}
+      - BASE_URL=https://permits.${TARGET_DOMAIN}
       - PROXY_BASE=${STL_PERMITS_PROXY_BASE}
       - DIGEST_HOUR=${DIGEST_HOUR:-7}
       - SYNC_INTERVAL_HOURS=${SYNC_INTERVAL_HOURS:-6}
@@ -42,7 +42,7 @@ services:
       - traefik-proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.stl-permits.rule=Host(`permits.veiledprofits.com`)"
+      - "traefik.http.routers.stl-permits.rule=Host(`permits.${TARGET_DOMAIN}`)"
       - "traefik.http.routers.stl-permits.entrypoints=websecure"
       - "traefik.http.routers.stl-permits.tls.certresolver=letsencrypt"
       - "traefik.http.services.stl-permits.loadbalancer.server.port=8000"
@@ -56,7 +56,7 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${MO_PERMITS_SMTP_USER}
       - SMTP_PASS=${MO_PERMITS_SMTP_PASS}
-      - BASE_URL=https://mopermits.veiledprofits.com
+      - BASE_URL=https://mopermits.${TARGET_DOMAIN}
       - CF_PROXY_URL=${CF_PROXY_URL:-}
     volumes:
       - /root/mo-permits/data:/app/data
@@ -65,7 +65,7 @@ services:
       - traefik-proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mo-permits.rule=Host(`mopermits.veiledprofits.com`)"
+      - "traefik.http.routers.mo-permits.rule=Host(`mopermits.${TARGET_DOMAIN}`)"
       - "traefik.http.routers.mo-permits.entrypoints=websecure"
       - "traefik.http.routers.mo-permits.tls.certresolver=letsencrypt"
       - "traefik.http.services.mo-permits.loadbalancer.server.port=8000"
