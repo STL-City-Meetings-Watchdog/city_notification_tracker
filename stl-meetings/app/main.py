@@ -12,7 +12,6 @@ from weasyprint import HTML
 from flask import Flask, render_template, request, jsonify
 import schedule
 
-
 PROXY_URL = "https://stl-proxy.dan-f8a.workers.dev/?url="
 ICAL_URLS = [
     "https://www.stlouis-mo.gov/customcf/endpoints/events/iCalGen.cfm?eventType=Meeting",
