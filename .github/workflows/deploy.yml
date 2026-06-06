@@ -9,6 +9,9 @@ on:
       target_domain:
         required: true
         type: string
+      persistence_dir:
+        required: true
+        type: string
 
 jobs:
   build:
@@ -34,4 +37,5 @@ jobs:
         MO_PERMITS_SMTP_USER: ${{ secrets.MO_PERMITS_SMTP_USER }}
         MO_PERMITS_SMTP_PASS: ${{ secrets.MO_PERMITS_SMTP_PASS }}
         TARGET_DOMAIN: ${{ inputs.target_domain }}
+        PERSISTENCE_DIR: ${{ inputs.persistence_dir }}
       

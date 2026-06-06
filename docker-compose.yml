@@ -10,8 +10,8 @@ services:
       - SMTP_PASS=${STL_MEETINGS_SMTP_PASS}
       - BASE_URL=https://stlmeetings.${TARGET_DOMAIN}
     volumes:
-      - /root/stl-meetings/data:/app/data
-      - /root/stl-meetings/data/pdfs:/app/pdfs
+      - ${PERSISTENCE_DIR}/stl-meetings/data:/app/data
+      - ${PERSISTENCE_DIR}/stl-meetings/data/pdfs:/app/pdfs
     networks:
       - default
       - traefik-proxy
@@ -36,7 +36,7 @@ services:
       - DIGEST_HOUR=${DIGEST_HOUR:-7}
       - SYNC_INTERVAL_HOURS=${SYNC_INTERVAL_HOURS:-6}
     volumes:
-      - /root/stl-permits/data:/app/data
+      - ${PERSISTENCE_DIR}/stl-permits/data:/app/data
     networks:
       - default
       - traefik-proxy
@@ -59,7 +59,7 @@ services:
       - BASE_URL=https://mopermits.${TARGET_DOMAIN}
       - CF_PROXY_URL=${CF_PROXY_URL:-}
     volumes:
-      - /root/mo-permits/data:/app/data
+      - ${PERSISTENCE_DIR}/mo-permits/data:/app/data
     networks:
       - default
       - traefik-proxy
