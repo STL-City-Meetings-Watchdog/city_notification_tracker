@@ -9,6 +9,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      # Stored in .env file in hostinger GUI (also redunndantly stored in github secrets, but not read at time of writing)
+      - HOSTINGER_API_TOKEN=${HOSTINGER_API_TOKEN}
     command:
       - --api.dashboard=false
       - --api.insecure=false
@@ -22,6 +25,11 @@ services:
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
       - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt-wildcard.acme.dnschallenge=true
+      - --certificatesresolvers.letsencrypt-wildcard.acme.dnschallenge.provider=hostinger
+      # Stored in .env file in hostinger GUI
+      - --certificatesresolvers.letsencrypt-wildcard.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt-wildcard.acme.storage=/letsencrypt/acme.json
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
     volumes:
