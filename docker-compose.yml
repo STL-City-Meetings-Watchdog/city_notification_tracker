@@ -1,5 +1,6 @@
 services:
   stl-meetings:
+    image: stl-meetings-${ENVIRONMENT_NICKNAME}
     container_name: stl-meetings-${ENVIRONMENT_NICKNAME}
     build: ./stl-meetings/app
     restart: unless-stopped
@@ -17,12 +18,13 @@ services:
       - traefik-proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.stl-meetings.rule=Host(`stlmeetings.${TARGET_DOMAIN}`)"
-      - "traefik.http.routers.stl-meetings.entrypoints=websecure"
-      - "traefik.http.routers.stl-meetings.tls.certresolver=letsencrypt"
-      - "traefik.http.services.stl-meetings.loadbalancer.server.port=8000"
+      - "traefik.http.routers.stl-meetings-${ENVIRONMENT_NICKNAME}.rule=Host(`stlmeetings.${TARGET_DOMAIN}`)"
+      - "traefik.http.routers.stl-meetings-${ENVIRONMENT_NICKNAME}.entrypoints=websecure"
+      - "traefik.http.routers.stl-meetings-${ENVIRONMENT_NICKNAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.stl-meetings-${ENVIRONMENT_NICKNAME}.loadbalancer.server.port=8000"
 
   stl-permits:
+    image: stl-permits-${ENVIRONMENT_NICKNAME}
     container_name: stl-permits-${ENVIRONMENT_NICKNAME}
     build: ./stl-permits/app
     restart: unless-stopped
@@ -42,12 +44,13 @@ services:
       - traefik-proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.stl-permits.rule=Host(`permits.${TARGET_DOMAIN}`)"
-      - "traefik.http.routers.stl-permits.entrypoints=websecure"
-      - "traefik.http.routers.stl-permits.tls.certresolver=letsencrypt"
-      - "traefik.http.services.stl-permits.loadbalancer.server.port=8000"
+      - "traefik.http.routers.stl-permits-${ENVIRONMENT_NICKNAME}.rule=Host(`permits.${TARGET_DOMAIN}`)"
+      - "traefik.http.routers.stl-permits-${ENVIRONMENT_NICKNAME}.entrypoints=websecure"
+      - "traefik.http.routers.stl-permits-${ENVIRONMENT_NICKNAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.stl-permits-${ENVIRONMENT_NICKNAME}.loadbalancer.server.port=8000"
 
   mo-permits:
+    image: mo-permits-${ENVIRONMENT_NICKNAME}
     container_name: mo-permits-${ENVIRONMENT_NICKNAME}
     build: ./mo-permits/app
     restart: unless-stopped
@@ -65,10 +68,10 @@ services:
       - traefik-proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mo-permits.rule=Host(`mopermits.${TARGET_DOMAIN}`)"
-      - "traefik.http.routers.mo-permits.entrypoints=websecure"
-      - "traefik.http.routers.mo-permits.tls.certresolver=letsencrypt"
-      - "traefik.http.services.mo-permits.loadbalancer.server.port=8000"
+      - "traefik.http.routers.mo-permits-${ENVIRONMENT_NICKNAME}.rule=Host(`mopermits.${TARGET_DOMAIN}`)"
+      - "traefik.http.routers.mo-permits-${ENVIRONMENT_NICKNAME}.entrypoints=websecure"
+      - "traefik.http.routers.mo-permits-${ENVIRONMENT_NICKNAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mo-permits-${ENVIRONMENT_NICKNAME}.loadbalancer.server.port=8000"
 
 networks:
   traefik-proxy:
