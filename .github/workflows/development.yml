@@ -10,7 +10,7 @@ on:
 
 jobs:
   extract:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       target_domain: ${{ steps.extract.outputs.target_domain }}
       my_github_issue_id: ${{ steps.extract.outputs.my_github_issue_id }}
@@ -26,28 +26,28 @@ jobs:
         echo "my_github_issue_id=${my_github_issue_id}" >> $GITHUB_OUTPUT
         echo "target_domain=${my_github_issue_id}.dev.veiledprofits.com" >> $GITHUB_OUTPUT
   setup_persistence_dir:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: extract
     outputs:
       persistence_dir: ${{ steps.clone.outputs.persistence_dir }}
     steps:
-    - name: Make Directory
+    - name: Copy and Scrub
       id: clone 
       run: |
         ISSUE_ID="${{ needs.extract.outputs.my_github_issue_id }}"
         rm -rf /srv/dev/$ISSUE_ID/stl-meetings/data
         rm -rf /srv/dev/$ISSUE_ID/stl-permits/data
         rm -rf /srv/dev/$ISSUE_ID/mo-permits/data
-        mkdir -p /srv/dev/$ISSUE_ID/stl-meetings/data/pdfs
+        mkdir -p /srv/dev/$ISSUE_ID/stl-meetings/data
         mkdir -p /srv/dev/$ISSUE_ID/stl-permits/data
         mkdir -p /srv/dev/$ISSUE_ID/mo-permits/data
-        cp -R /root/stl-meetings/data /srv/dev/$ISSUE_ID/stl-meetings/data/pdfs
-        cp -R /root/stl-permits/data  /srv/dev/$ISSUE_ID/stl-permits/data
-        cp -R /root/mo-permits/data   /srv/dev/$ISSUE_ID/mo-permits/data
+        cp -R /root/stl-meetings/data /srv/dev/$ISSUE_ID/stl-meetings/
+        cp -R /root/stl-permits/data  /srv/dev/$ISSUE_ID/stl-permits/
+        cp -R /root/mo-permits/data   /srv/dev/$ISSUE_ID/mo-permits/
         which sqlite3 || sudo apt-get install -y sqlite3
         sqlite3 /srv/dev/$ISSUE_ID/stl-meetings/data/meetings.db "DELETE FROM subscribers;"
-        sqlite3 /srv/dev/$ISSUE_ID/stl-permits/data/permits.db "DELETE FROM subscribers;"
-        sqlite3 /srv/dev/$ISSUE_ID/mo-permits/data/permits.db "DELETE FROM subscribers;"
+        sqlite3 /srv/dev/$ISSUE_ID/stl-permits/data/permits.db   "DELETE FROM subscribers;"
+        sqlite3 /srv/dev/$ISSUE_ID/mo-permits/data/permits.db    "DELETE FROM subscribers;"
         echo "persistence_dir=/srv/dev/$ISSUE_ID" >> $GITHUB_OUTPUT
       # TODO: Populate Secrets
   build:

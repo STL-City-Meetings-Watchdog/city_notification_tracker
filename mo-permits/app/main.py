@@ -55,6 +55,7 @@ MO_COUNTIES = [
     'Warren','Washington','Wayne','Webster','Worth','Wright'
 ]
 
+
 PERMIT_TYPE_GROUPS = {
     'Construction': 'Construction Permit',
     'Operating':    'Operating Permit',
