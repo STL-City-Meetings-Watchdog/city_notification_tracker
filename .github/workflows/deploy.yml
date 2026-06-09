@@ -24,7 +24,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker compose up --build --detach
+      run: docker compose --project-name city-${{ inputs.environment_nickname }} up --build --detach
       env:
         SMTP_HOST: ${{ vars.SMTP_HOST }}
         SMTP_PORT: ${{ vars.SMTP_PORT }}
