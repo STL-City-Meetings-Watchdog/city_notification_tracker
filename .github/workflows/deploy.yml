@@ -6,6 +6,9 @@ on:
       environment:
         required: true
         type: string
+      environment_nickname:
+        required: true
+        type: string
       target_domain:
         required: true
         type: string
@@ -36,4 +39,5 @@ jobs:
         MO_PERMITS_SMTP_PASS: ${{ secrets.MO_PERMITS_SMTP_PASS }}
         TARGET_DOMAIN: ${{ inputs.target_domain }}
         PERSISTENCE_DIR: ${{ inputs.persistence_dir }}
+        ENVIRONMENT_NICKNAME: ${{ inputs.environment_nickname }}
       

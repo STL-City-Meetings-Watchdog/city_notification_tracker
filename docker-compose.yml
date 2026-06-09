@@ -1,6 +1,6 @@
 services:
   stl-meetings:
-    container_name: stl-meetings-app-1
+    container_name: stl-meetings-${ENVIRONMENT_NICKNAME}
     build: ./stl-meetings/app
     restart: unless-stopped
     environment:
@@ -23,7 +23,7 @@ services:
       - "traefik.http.services.stl-meetings.loadbalancer.server.port=8000"
 
   stl-permits:
-    container_name: stl-permits-app-1
+    container_name: stl-permits-${ENVIRONMENT_NICKNAME}
     build: ./stl-permits/app
     restart: unless-stopped
     environment:
@@ -48,7 +48,7 @@ services:
       - "traefik.http.services.stl-permits.loadbalancer.server.port=8000"
 
   mo-permits:
-    container_name: mo-permits-app
+    container_name: mo-permits-${ENVIRONMENT_NICKNAME}
     build: ./mo-permits/app
     restart: unless-stopped
     environment:
