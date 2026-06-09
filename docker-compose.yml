@@ -14,7 +14,6 @@ services:
       - ${PERSISTENCE_DIR}/stl-meetings/data:/app/data
       - ${PERSISTENCE_DIR}/stl-meetings/data/pdfs:/app/pdfs
     networks:
-      - default
       - traefik-proxy
     labels:
       - "traefik.enable=true"
@@ -40,7 +39,6 @@ services:
     volumes:
       - ${PERSISTENCE_DIR}/stl-permits/data:/app/data
     networks:
-      - default
       - traefik-proxy
     labels:
       - "traefik.enable=true"
@@ -64,7 +62,6 @@ services:
     volumes:
       - ${PERSISTENCE_DIR}/mo-permits/data:/app/data
     networks:
-      - default
       - traefik-proxy
     labels:
       - "traefik.enable=true"
