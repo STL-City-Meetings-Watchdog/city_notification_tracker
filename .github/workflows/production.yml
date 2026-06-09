@@ -13,6 +13,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       environment: production
+      environment_nickname: prod
       target_domain: veiledprofits.com
       persistence_dir: /root
     secrets: inherit

@@ -57,6 +57,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       environment: development
+      environment_nickname: "dev-${{ needs.extract.outputs.my_github_issue_id }}"
       target_domain: ${{ needs.extract.outputs.target_domain }}
       persistence_dir: ${{ needs.setup_persistence_dir.outputs.persistence_dir }}
     secrets: inherit
