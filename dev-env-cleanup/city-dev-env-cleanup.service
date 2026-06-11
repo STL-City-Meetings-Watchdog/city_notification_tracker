@@ -1,0 +1,33 @@
+# /etc/systemd/system/city-dev-env-cleanup.service
+#
+# One-shot service that runs the ephemeral dev environment cleanup script.
+# Triggered by city-dev-env-cleanup.timer, not directly enabled.
+
+[Unit]
+Description=Decommission stale ephemeral dev environments
+# Don't run if the VPS is still booting up / network not ready
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+
+# Run as root so we can docker compose down, docker rmi, and rm -rf /srv/dev/*
+User=root
+
+# Explicit PATH so docker and other tools are found reliably
+# (systemd runs in a stripped environment — this avoids the classic cron PATH problem)
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# Tunable config — override in /etc/systemd/system/city-dev-env-cleanup.service.d/override.conf
+Environment="MAX_AGE_DAYS=2"
+Environment="DEV_BASE_DIR=/srv/dev"
+
+ExecStart=/usr/local/sbin/city-dev-env-cleanup
+
+# If the script exits non-zero, systemd marks the unit as failed.
+# journalctl -u city-dev-env-cleanup.service will show the output.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=city-dev-env-cleanup
+

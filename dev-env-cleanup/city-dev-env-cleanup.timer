@@ -1,0 +1,23 @@
+# /etc/systemd/system/city-dev-env-cleanup.timer
+#
+# Runs city-dev-env-cleanup.service once per day at 03:00 local time.
+# Adjust OnCalendar to taste.
+
+[Unit]
+Description=Daily timer for ephemeral dev environment cleanup
+
+[Timer]
+# Run at 3 AM every day
+OnCalendar=*-*-* 03:00:00
+
+# If the VPS was off when the timer was supposed to fire, run it
+# within 10 minutes of the next boot instead of silently skipping
+Persistent=true
+
+# Small random delay so it doesn't fire at exactly :00 alongside other timers
+RandomizedDelaySec=5min
+
+Unit=city-dev-env-cleanup.service
+
+[Install]
+WantedBy=timers.target

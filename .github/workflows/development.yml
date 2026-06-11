@@ -50,6 +50,12 @@ jobs:
         sqlite3 /srv/dev/$ISSUE_ID/mo-permits/data/permits.db    "DELETE FROM subscribers;"
         echo "persistence_dir=/srv/dev/$ISSUE_ID" >> $GITHUB_OUTPUT
       # TODO: Populate Secrets
+    - name: Stamp last-deployed sentinel
+      run: |
+        # The cleanup script uses this file's mtime to decide whether the
+        # environment is stale. Touching it here (after a successful deploy
+        # data setup) means the 2-day clock resets on every push to this branch.
+        touch /srv/dev/${{ needs.extract.outputs.my_github_issue_id }}/last-deployed-timestamp
   build:
     needs: 
       - extract
