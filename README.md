@@ -229,11 +229,40 @@ The behavior of the ephemeral testing environments in terms of how they are depl
 For the future, each ephemeral testing environment will spin down after two days, but that is not yet implemented. 
 
 
-
-
 ## How to Contribute to the project
 
-For each feature you are working on, please make a development branch. Each feature should map to an issue. If an issue does not already exit over in the issues tab, please make one. If you want to make a ephemeral development environment, follow the instructions in the above subsection. If not, then pleaseuse the same format for 
-The branch name as described for making an ephemeral testing environment, but without the character "f" at the beginning. For example, if you want to make a branch to solve issue 9, name it something like "9-enable-account-creation". First, there is the issue number. Then, there is a brief description of the issue. 
+For each feature you are working on, please make a development branch. Each feature should map to an issue. If an issue does not already exit over in the issues tab, please make one. If you want to make a ephemeral development environment, follow the instructions in the above subsection. If not, then please use the same format for the branch name as described for making an ephemeral testing environment, but without the character "f" at the beginning. For example, if you want to make a branch to solve issue 9, name it something like "9-enable-account-creation". First, there is the issue number. Then, there is a brief description of the issue. 
 
 Once you have gotten your branch to your liking, you can request to push it to main. To do that, make a pull request, and have at least one other member of this project review and approve your code. You can keep doing review cycles until they approve it. 
+
+
+### How Ephemeral Testing Environments are Deleted
+
+If we never deleted these environments, they'd eventually take up too many server resources. Therefore the [dev-env-cleanup](./dev-env-cleanup) directory includes code for garbage collecting each development environment after two days, at 3am. This code is not auto-deployed by github actions, because ... well I guess you don't want to wait till its on `main` to test it. 
+
+The implementation is a _systemd service_ that needs files scattered around the VPS's filesystem and runs as `root`. There's a reentrant installer script. If you make changes you need to redeploy thusly:
+
+```
+localhost% rsync -av --delete dev-env-cleanup/ root@veil:/tmp/city-dev-env-cleanup/
+localhost% ssh root@veil
+root@veil:~# cd /tmp/city-dev-env-cleanup/
+root@veil:/tmp/city-dev-env-cleanup# ./install 
+[output elided for brevity]
+```
+
+#### Running the service right meow!
+
+```
+systemctl start city-dev-env-cleanup.service
+```
+
+#### Checking on the status of the city-dev-env-cleanup service.
+```
+systemctl status city-dev-env-cleanup.service
+```
+
+Or with more detail:
+
+```
+journalctl -u city-dev-env-cleanup.service -n 100
+```
