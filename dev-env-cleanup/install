@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# install
+# Installs the ephemeral dev environment cleanup system.
+# Run as root from the directory containing the cleanup files.
+
+set -euo pipefail
+
+SCRIPT_SRC="city-dev-env-cleanup"
+SERVICE_SRC="city-dev-env-cleanup.service"
+TIMER_SRC="city-dev-env-cleanup.timer"
+
+SCRIPT_DEST="/usr/local/sbin/city-dev-env-cleanup"
+SERVICE_DEST="/etc/systemd/system/city-dev-env-cleanup.service"
+TIMER_DEST="/etc/systemd/system/city-dev-env-cleanup.timer"
+
+echo "Installing ${SCRIPT_SRC} -> ${SCRIPT_DEST}"
+install -o root -g root -m 0750 "$SCRIPT_SRC" "$SCRIPT_DEST"
+
+echo "Installing ${SERVICE_SRC} -> ${SERVICE_DEST}"
+install -o root -g root -m 0644 "$SERVICE_SRC" "$SERVICE_DEST"
+
+echo "Installing ${TIMER_SRC} -> ${TIMER_DEST}"
+install -o root -g root -m 0644 "$TIMER_SRC" "$TIMER_DEST"
+
+echo "Reloading systemd daemon..."
+systemctl daemon-reload
+
+echo "Enabling and starting timer..."
+systemctl enable --now city-dev-env-cleanup.timer
+
+echo "Restarting timer to pick up any schedule changes..."
+systemctl restart city-dev-env-cleanup.timer
+
+echo ""
+systemctl status city-dev-env-cleanup.timer --no-pager
+echo ""
+echo "Done. Next scheduled run:"
+systemctl list-timers city-dev-env-cleanup.timer --no-pager
