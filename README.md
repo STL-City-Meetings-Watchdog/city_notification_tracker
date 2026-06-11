@@ -213,3 +213,27 @@ tar -zxf ../snapshot.tgz
 ls # you should see the files!
 ```
 Now you can copy the files to the repo and commit them to github.
+
+
+## Ephemeral Testing Environments
+You can make branches that will deploy onto the website as a seperate testing version to play with. We are calling it an ephemeral development environment. This is how you 
+When you make a new branch for a new issue, check the number of the issue. Name the issue as follows: "fISSUE_NUM-descriptor-of-issue". If the branch does not start with the character "f" followed by some integer, then a ephemeral development environment will not be created. 
+For example, if you are making an ephemeral environment for issue 9, you could name your branch "f9-enable-account-creation" or something like that. 
+
+One you have your branch created and have pushed to github, a new ephemeral environment will automatically deploy online. To reach it, go to the url of the following format: subdomain.ISSUE_NUM.dev.veiledprofits.com 
+Using the above example, to go to the ephemeral dev environment for the stl meetings subdomain for issue 9, you would go to the following url: stlmeetings.9.dev.veiledprofits.com 
+(note that the three available subdomains are as follows: permits, mopermits, and stlmeetings). 
+
+The behavior of the ephemeral testing environments in terms of how they are deployed is handled by a github actions workflow. The yaml file for that workflow is found at .github/workflows/development.yml
+
+For the future, each ephemeral testing environment will spin down after two days, but that is not yet implemented. 
+
+
+
+
+## How to Contribute to the project
+
+For each feature you are working on, please make a development branch. Each feature should map to an issue. If an issue does not already exit over in the issues tab, please make one. If you want to make a ephemeral development environment, follow the instructions in the above subsection. If not, then pleaseuse the same format for 
+The branch name as described for making an ephemeral testing environment, but without the character "f" at the beginning. For example, if you want to make a branch to solve issue 9, name it something like "9-enable-account-creation". First, there is the issue number. Then, there is a brief description of the issue. 
+
+Once you have gotten your branch to your liking, you can request to push it to main. To do that, make a pull request, and have at least one other member of this project review and approve your code. You can keep doing review cycles until they approve it. 
