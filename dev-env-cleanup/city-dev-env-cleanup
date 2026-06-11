@@ -123,6 +123,8 @@ for issue_dir in "${issue_dirs[@]}"; do
   #
   #    Same label approach. The shared traefik-proxy network is not
   #    labelled with this project, so it will never match here.
+  #    At time of writing we don't actually create any networks, so this
+  #    code just natters in the log. 
   # ------------------------------------------------------------------
   log "    Removing networks for ${project_name}..."
   network_ids=$(
