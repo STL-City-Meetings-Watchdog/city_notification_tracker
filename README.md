@@ -266,3 +266,6 @@ Or with more detail:
 ```
 journalctl -u city-dev-env-cleanup.service -n 100
 ```
+## Site Monitoring
+
+Prod has basic site monitoring through uptimerobot.com. The account is in Dave's name and the credentials for login have been shared with the other principals. An alert gets sent to an email account controlled by Dave, and he's set up forwarding to send to the other people. 
