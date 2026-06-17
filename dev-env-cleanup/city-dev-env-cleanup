@@ -4,9 +4,9 @@
 # Decommissions ephemeral dev environments that haven't been deployed
 # to in more than MAX_AGE_DAYS days.
 #
-# What it does per environment:
-#   1. Stop + remove all containers belonging to the project (via Docker labels)
-#   2. Remove all Docker networks belonging to the project (via Docker labels)
+# What it does per ephemeral environment:
+#   1. Stop + remove all containers belonging to the branch (via Docker labels)
+#   2. Remove all Docker networks belonging to the branch (via Docker labels)
 #   3. Remove all Docker images whose name ends in -<environment_nickname>
 #   4. rm -rf the persistence dir under /srv/dev/$ISSUE_ID
 #
@@ -93,7 +93,7 @@ for issue_dir in "${issue_dirs[@]}"; do
   log "  ${project_name}: deployed ${age_days}d ago — decommissioning"
 
   # ------------------------------------------------------------------
-  # 1. Stop + remove all containers belonging to this project.
+  # 1. Stop + remove all containers belonging to this branch.
   #
   #    Uses the com.docker.compose.project label that Docker stamps on
   #    every container at `docker compose up` time. This is correct
