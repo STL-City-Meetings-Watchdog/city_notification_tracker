@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install
-# Installs the ephemeral dev environment cleanup system.
+# Installs the ephemeral dev environment cleanup system, or installs updated versions - see README.md
 # Run as root from the directory containing the cleanup files.
 
 set -euo pipefail
