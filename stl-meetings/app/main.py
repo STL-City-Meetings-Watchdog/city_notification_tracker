@@ -21,7 +21,8 @@ ICAL_URLS = [
     "https://www.stlouis-mo.gov/customcf/endpoints/events/iCalGen.cfm?eventType=Aldermanic%20Special%20Committee%20Meeting",
 ]
 BASE_URL = os.environ.get("BASE_URL", "https://stlmeetings.veiledprofits.com")
-BASE = Path(__file__).parent
+# BASE = Path(__file__).parent
+BASE = Path("/Users/kacquilano/Desktop/city_notification_tracker/stl-meetings/app")
 DATA_DIR = BASE / "data"
 PDF_DIR = BASE / "pdfs"
 DB_PATH = DATA_DIR / "meetings.db"
@@ -547,8 +548,11 @@ def run_scheduler():
 
 init_db()
 
-scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
-scheduler_thread.start()
+# Only start scheduler when running as main script or under gunicorn
+import sys
+if __name__ == '__main__' or 'gunicorn' in sys.modules:
+    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+    scheduler_thread.start()
 
 if __name__ == '__main__':
     sync_meetings()
