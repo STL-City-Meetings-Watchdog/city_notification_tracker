@@ -478,7 +478,7 @@ def search():
     # Also search extracted PDF text
     c.execute('''SELECT DISTINCT m.* FROM meetings m
                  JOIN documents d ON d.meeting_id = m.id
-                 WHERE d.extracted_text LIKE ?
+                 WHERE lower(d.extracted_text) LIKE ?
                  ORDER BY m.start_time DESC LIMIT 100''', (like,))
     for r in c.fetchall():
         results.setdefault(r['id'], dict(r))
