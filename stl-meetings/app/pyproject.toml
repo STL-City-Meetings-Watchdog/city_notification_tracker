@@ -9,8 +9,12 @@ dependencies = [
     "flask==3.0.0",
     "gunicorn==21.2.0",
     "icalendar==5.0.11",
+    "pango>=0.0.1",
+    "pdfminer>=20191125",
+    "pdfminer-six>=20260107",
     "pydyf==0.8.0",
     "requests==2.31.0",
     "schedule==1.2.1",
+    "spyder-kernels==3.1.*",
     "weasyprint==59.0",
 ]
