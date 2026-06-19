@@ -21,12 +21,12 @@ ICAL_URLS = [
     "https://www.stlouis-mo.gov/customcf/endpoints/events/iCalGen.cfm?eventType=Aldermanic%20Special%20Committee%20Meeting",
 ]
 BASE_URL = os.environ.get("BASE_URL", "https://stlmeetings.veiledprofits.com")
-# BASE = Path(__file__).parent
-# BASE = Path("/Users/kacquilano/Desktop/city_notification_tracker/stl-meetings/app")
-# DATA_DIR = BASE / "data"
-# PDF_DIR = BASE / "pdfs"
-DATA_DIR = Path("/app/data")
-PDF_DIR = Path("/app/pdfs")
+BASE = Path(__file__).parent
+#BASE = Path("/Users/kacquilano/Desktop/city_notification_tracker/stl-meetings/app")
+DATA_DIR = BASE / "data"
+PDF_DIR = BASE / "pdfs"
+#DATA_DIR = Path("/app/data")
+#PDF_DIR = Path("/app/pdfs")
 DB_PATH = DATA_DIR / "meetings.db"
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.hostinger.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", 465))
@@ -35,7 +35,8 @@ SMTP_PASS = os.environ.get("SMTP_PASS", "")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-app = Flask(__name__, template_folder="/app/templates")
+#app = Flask(__name__, template_folder="/app/templates")
+app = Flask(__name__, template_folder=str(BASE / "templates"))
 
 def proxy_get(url, timeout=30):
     """Fetch URL through Cloudflare proxy"""
@@ -440,6 +441,31 @@ def sync_meetings():
             send_meeting_notification(meeting, subs)
     conn.close()
     logger.info(f"Sync done. {len(new_meetings)} new.")
+    
+def backfill_extracted_text():
+    """Extract text from already-downloaded PDFs that are missing extracted_text."""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT id, local_path FROM documents WHERE extracted_text IS NULL AND filename LIKE '%.pdf'")
+    rows = c.fetchall()
+    if not rows:
+        logger.info("No PDFs need text extraction backfill.")
+        conn.close()
+        return
+    logger.info(f"Backfilling extracted text for {len(rows)} PDFs...")
+    for doc_id, local_path in rows:
+        pdf_file = PDF_DIR / local_path
+        if not pdf_file.exists():
+            continue
+        try:
+            text = extract_text_from_pdf(open(pdf_file, 'rb').read())
+            if text:
+                c.execute("UPDATE documents SET extracted_text=? WHERE id=?", (text, doc_id))
+        except Exception as e:
+            logger.error(f"Backfill failed for {local_path}: {e}")
+    conn.commit()
+    conn.close()
+    logger.info("Backfill complete.")
 
 @app.route('/')
 def index():
@@ -549,6 +575,8 @@ def run_scheduler():
         time.sleep(60)
 
 init_db()
+backfill_extracted_text()  # to backfill document text
+
 
 # Only start scheduler when running as main script or under gunicorn
 import sys
@@ -560,8 +588,21 @@ if __name__ == '__main__':
     sync_meetings()
     app.run(host='0.0.0.0', port=8000)
 
-from flask import send_from_directory
+
+#from flask import send_from_directory
+
+#@app.route('/pdfs/<path:filepath>')
+#def serve_pdf(filepath):
+#    return send_from_directory('/app/pdfs', filepath)
+
+
+
+from flask import send_file
 
 @app.route('/pdfs/<path:filepath>')
 def serve_pdf(filepath):
-    return send_from_directory('/app/pdfs', filepath)
+    full_path = PDF_DIR.resolve() / filepath
+    print(f"Serving: {full_path}, exists: {full_path.exists()}")
+    if not full_path.exists():
+        return f"File not found: {full_path}", 404
+    return send_file(str(full_path), mimetype='application/pdf')
