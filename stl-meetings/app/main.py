@@ -472,20 +472,20 @@ def search():
     like = f'%{q}%'
     # Search meetings table
     c.execute('''SELECT DISTINCT m.* FROM meetings m
-                 WHERE m.title LIKE ? OR m.description LIKE ? OR m.sponsor LIKE ?
+                 WHERE lower(m.title) LIKE lower(?) OR lower(m.description) LIKE lower(?) OR lower(m.sponsor) LIKE lower(?)
                  ORDER BY m.start_time DESC LIMIT 100''', (like, like, like))
     results = {r['id']: dict(r) for r in c.fetchall()}
     # Also search extracted PDF text
     c.execute('''SELECT DISTINCT m.* FROM meetings m
                  JOIN documents d ON d.meeting_id = m.id
-                 WHERE lower(d.extracted_text) LIKE ?
+                 WHERE lower(d.extracted_text) LIKE lower(?)
                  ORDER BY m.start_time DESC LIMIT 100''', (like,))
     for r in c.fetchall():
         results.setdefault(r['id'], dict(r))
     # Also search scraped page text
     c.execute('''SELECT DISTINCT m.* FROM meetings m
                  JOIN scraped_pages sp ON sp.meeting_id = m.id
-                 WHERE sp.page_text LIKE ?
+                 WHERE lower(sp.page_text) LIKE lower(?)
                  ORDER BY m.start_time DESC LIMIT 100''', (like,))
     for r in c.fetchall():
         results.setdefault(r['id'], dict(r))
