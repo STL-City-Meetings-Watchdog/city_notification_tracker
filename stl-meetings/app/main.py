@@ -22,9 +22,11 @@ ICAL_URLS = [
 ]
 BASE_URL = os.environ.get("BASE_URL", "https://stlmeetings.veiledprofits.com")
 # BASE = Path(__file__).parent
-BASE = Path("/Users/kacquilano/Desktop/city_notification_tracker/stl-meetings/app")
-DATA_DIR = BASE / "data"
-PDF_DIR = BASE / "pdfs"
+# BASE = Path("/Users/kacquilano/Desktop/city_notification_tracker/stl-meetings/app")
+# DATA_DIR = BASE / "data"
+# PDF_DIR = BASE / "pdfs"
+DATA_DIR = Path("/app/data")
+PDF_DIR = Path("/app/pdfs")
 DB_PATH = DATA_DIR / "meetings.db"
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.hostinger.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", 465))
