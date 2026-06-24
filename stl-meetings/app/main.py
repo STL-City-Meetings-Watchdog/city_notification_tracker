@@ -329,7 +329,9 @@ def sync_meetings():
             c.execute('INSERT INTO documents (meeting_id,doc_type,local_path,filename) VALUES (?,"notice",?,"notice.pdf")', (meeting['id'],pdf_path))
         if meeting['event_url']:
             for doc in scrape_event_page(meeting['event_url']):
-                local_path, filename, extracted_text = download_document(doc['url'], meeting['id'], doc['type'])
+                local_path, filename = download_document(doc['url'], meeting['id'], doc['type'])
+                pdf_file = PDF_DIR / local_path
+                extracted_text = extract_text_from_pdf(open(pdf_file, 'rb').read())
                 if local_path:
                     c.execute('INSERT INTO documents (meeting_id,doc_type,original_url,local_path,filename,extracted_text) VALUES (?,?,?,?,?,?)',
                     (meeting['id'], doc['type'], doc['url'], local_path, filename, extracted_text))
@@ -400,9 +402,7 @@ def search():
     if not q: return render_template('search.html', results=[], query='')
     conn = get_db()
     c = conn.cursor()
-    c.execute('SELECT * FROM meetings WHERE title LIKE ? OR description LIKE ? OR sponsor LIKE ? ORDER BY start_time DESC LIMIT 100', (f'%{q}%',f'%{q}%',f'%{q}%'))
-    results = [dict(r) for r in c.fetchall()]
-    c.execute('SELECT * FROM documents WHERE filename LIKE ? OR extracted_text LIKE ? ORDER BY start_time DESC LIMIT 100', (f'%{q}%',f'%{q}%'))
+    c.execute('SELECT m.* FROM meetings m JOIN documents d ON m.id = d.meeting_id WHERE m.title LIKE ? OR m.description LIKE ? OR m.sponsor LIKE ? OR d.extracted_text LIKE ? ORDER BY start_time DESC LIMIT 100', (f'%{q}%',f'%{q}%',f'%{q}%',f'%{q}%'))
     results = [dict(r) for r in c.fetchall()]
     conn.close()
     return render_template('search.html', results=results, query=q)
@@ -472,8 +472,12 @@ if __name__ == '__main__':
     sync_meetings()
     app.run(host='0.0.0.0', port=8000)
 
-from flask import send_from_directory
+from flask import send_file
 
 @app.route('/pdfs/<path:filepath>')
 def serve_pdf(filepath):
-    return send_from_directory('/app/pdfs', filepath)
+    full_path = PDF_DIR.resolve() / filepath
+    print(f"Serving: {full_path}, exists: {full_path.exists()}")
+    if not full_path.exists():
+        return f"File not found: {full_path}", 404
+    return send_file(str(full_path), mimetype='application/pdf')
