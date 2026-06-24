@@ -332,7 +332,9 @@ def sync_meetings():
             c.execute('INSERT INTO documents (meeting_id,doc_type,local_path,filename) VALUES (?,"notice",?,"notice.pdf")', (meeting['id'],pdf_path))
         if meeting['event_url']:
             for doc in scrape_event_page(meeting['event_url']):
-                local_path, filename, extracted_text = download_document(doc['url'], meeting['id'], doc['type'])
+                local_path, filename = download_document(doc['url'], meeting['id'], doc['type'])
+                pdf_file = PDF_DIR / local_path
+                extracted_text = extract_text_from_pdf(open(pdf_file, 'rb').read())
                 if local_path:
                     c.execute('INSERT INTO documents (meeting_id,doc_type,original_url,local_path,filename,extracted_text) VALUES (?,?,?,?,?,?)',
                     (meeting['id'], doc['type'], doc['url'], local_path, filename, extracted_text))
