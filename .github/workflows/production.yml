@@ -15,5 +15,5 @@ jobs:
       environment: production
       environment_nickname: prod
       target_domain: veiledprofits.com
-      persistence_dir: /root
+      persistence_dir: /srv/prod
     secrets: inherit
