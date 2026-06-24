@@ -41,9 +41,9 @@ jobs:
         mkdir -p /srv/dev/$ISSUE_ID/stl-meetings/data
         mkdir -p /srv/dev/$ISSUE_ID/stl-permits/data
         mkdir -p /srv/dev/$ISSUE_ID/mo-permits/data
-        cp -R /root/stl-meetings/data /srv/dev/$ISSUE_ID/stl-meetings/
-        cp -R /root/stl-permits/data  /srv/dev/$ISSUE_ID/stl-permits/
-        cp -R /root/mo-permits/data   /srv/dev/$ISSUE_ID/mo-permits/
+        cp -R /srv/prod/stl-meetings/data /srv/dev/$ISSUE_ID/stl-meetings/
+        cp -R /srv/prod/stl-permits/data  /srv/dev/$ISSUE_ID/stl-permits/
+        cp -R /srv/prod/mo-permits/data   /srv/dev/$ISSUE_ID/mo-permits/
         which sqlite3 || sudo apt-get install -y sqlite3
         sqlite3 /srv/dev/$ISSUE_ID/stl-meetings/data/meetings.db "DELETE FROM subscribers;"
         sqlite3 /srv/dev/$ISSUE_ID/stl-permits/data/permits.db   "DELETE FROM subscribers;"
