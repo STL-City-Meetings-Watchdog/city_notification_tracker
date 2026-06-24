@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+
+set -euox pipefail
+
+city_src=/root
+city_dst=/srv/prod
+
+echo "Move production files from ${city_src} to ${city_dst}"
+
+mkdir -p --verbose ${city_dst}/stl-meetings ${city_dst}/stl-permits ${city_dst}/mo-permits
+rsync --archive --verbose ${city_src}/stl-meetings/data ${city_dst}/stl-meetings
+rsync --archive --verbose ${city_src}/stl-permits/data ${city_dst}/stl-permits
+rsync --archive --verbose ${city_src}/mo-permits/data ${city_dst}/mo-permits
