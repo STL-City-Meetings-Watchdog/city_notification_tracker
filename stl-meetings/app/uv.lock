@@ -924,6 +924,7 @@ dependencies = [
     { name = "schedule" },
     { name = "spyder-kernels" },
     { name = "weasyprint" },
+    { name = "werkzeug" },
 ]
 
 [package.metadata]
@@ -940,6 +941,7 @@ requires-dist = [
     { name = "schedule", specifier = "==1.2.1" },
     { name = "spyder-kernels", specifier = "==3.1.*" },
     { name = "weasyprint", specifier = "==59.0" },
+    { name = "werkzeug", specifier = ">=3.1.8" },
 ]
 
 [[package]]
