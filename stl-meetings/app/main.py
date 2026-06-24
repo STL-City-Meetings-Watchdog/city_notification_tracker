@@ -270,7 +270,9 @@ def check_upcoming_documents():
             c.execute('SELECT id FROM documents WHERE meeting_id=? AND filename=?', (mid, doc["filename"]))
             if c.fetchone():
                 continue
-            local_path, filename, extracted_text = download_document(doc["url"], mid, doc["type"])
+            local_path, filename = download_document(doc['url'], mid, doc['type'])
+            pdf_file = PDF_DIR / local_path
+            extracted_text = extract_text_from_pdf(open(pdf_file, 'rb').read())
             if local_path:
                 c.execute(
                     'INSERT INTO documents (meeting_id,doc_type,original_url,local_path,filename,extracted_text) VALUES (?,?,?,?,?,?)',
