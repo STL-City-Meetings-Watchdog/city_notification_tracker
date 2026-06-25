@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os, re, sqlite3, hashlib, smtplib, logging, threading, time
+os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/lib"
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -20,10 +21,8 @@ ICAL_URLS = [
     "https://www.stlouis-mo.gov/customcf/endpoints/events/iCalGen.cfm?eventType=Aldermanic%20Special%20Committee%20Meeting",
 ]
 BASE_URL = os.environ.get("BASE_URL", "https://stlmeetings.veiledprofits.com")
-DATA_DIR = Path("/app/data")
-PDF_DIR = Path("/app/pdfs")
-# BASE = Path(__file__).parent
-BASE = Path("/Users/kacquilano/Desktop/city_notification_tracker/stl-meetings/app")
+BASE = Path(__file__).parent
+#BASE = Path("/Users/kacquilano/Desktop/city_notification_tracker/stl-meetings/app")
 DATA_DIR = BASE / "data"
 PDF_DIR = BASE / "pdfs"
 DB_PATH = DATA_DIR / "meetings.db"
@@ -35,7 +34,7 @@ SMTP_PASS = os.environ.get("SMTP_PASS", "")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-app = Flask(__name__, template_folder="/app/templates")
+app = Flask(__name__, template_folder=str(BASE / "templates"))
 
 def proxy_get(url, timeout=30):
     """Fetch URL through Cloudflare proxy"""
@@ -470,17 +469,9 @@ def run_scheduler():
 init_db()
 backfill_extracted_text()
 
-
 # Start scheduler thread (runs under gunicorn too)
 scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
 scheduler_thread.start()
-
-# Only start scheduler when running as main script or under gunicorn
-import sys
-if __name__ == '__main__' or 'gunicorn' in sys.modules:
-    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
-    scheduler_thread.start()
-
 
 if __name__ == '__main__':
     sync_meetings()
