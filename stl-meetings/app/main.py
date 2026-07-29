@@ -376,9 +376,9 @@ def subscribe():
             conn.commit()
             send_email(email, "Verify STL Meetings subscription", f'<html><body><h2>Confirm</h2><p><a href="{BASE_URL}/verify?token={vt}" style="background:#c03221;color:white;padding:10px 20px;text-decoration:none">Confirm Subscription</a></p></body></html>')
         except: pass
-	#this is a test email to see if it sends me an email correctly
-	send_email(email, "Test email", f'<html><body><p>This is a test email to confirm delivery to {email}.</p></body></html>')
-            print(f"[subscribe] Test email sent to: {email}")
+		#this is a test email to see if it sends me an email correctly
+		send_email(email, "Test email", f'<html><body><p>This is a test email to confirm delivery to {email}.</p></body></html>')
+        print(f"[subscribe] Test email sent to: {email}")
         conn.close()
         return render_template('subscribe.html', success=True)
     return render_template('subscribe.html')
