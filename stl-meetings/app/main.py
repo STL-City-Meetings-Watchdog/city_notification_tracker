@@ -221,8 +221,8 @@ def send_email(to_email, subject, html_body, attachments=None):
 # --- Board / topic filtering -------------------------------------------------
 # Subscribers can narrow to a board group on the subscribe form. The iCal feed
 # does NOT populate a usable "sponsor" field (it is empty on every event), so we
-# match the subscriber's chosen keywords against the meeting's title/description
-# instead. Matching is deliberately generous: for a public-notice service,
+# match the subscriber's chosen keywords against the meeting TITLE instead (see
+# boards_match). Matching leans generous: for a public-notice service,
 # over-notifying is far better than silently dropping a subscriber.
 BOARD_MATCH = {
     'aldermen': [r'\balderman', r'\baldermen\b', r'\baldermanic\b', r'board of aldermen'],
@@ -234,20 +234,32 @@ BOARD_MATCH = {
     'planning': [r'\bplanning\b'],
 }
 
-def boards_match(boards, text):
-    """Whether a subscriber with this `boards` selection should receive a meeting
-    whose searchable `text` (title + description) is given. 'all', empty, or an
+def boards_match(boards, title, description=''):
+    """Whether a subscriber with this `boards` selection should receive a meeting.
+    Keyword groups are matched against the TITLE only — the iCal `sponsor` field
+    is always empty, and matching the full description drags in boilerplate (e.g.
+    the Board of Aldermen rules text names "St. Louis Development Corporation",
+    which would spam development subscribers with every BOA meeting). Aldermanic
+    standing committees don't carry "aldermen" in their title but identify
+    themselves in the description ("...this board of aldermen committee
+    meeting..."), so 'aldermen' also matches on that phrase. 'all', empty, or an
     unrecognized selection => always True, so a subscriber is never silently
     dropped."""
     if not boards or boards.strip().lower() == 'all':
         return True
-    text = (text or '').lower()
-    patterns = []
+    title_l = (title or '').lower()
+    desc_l = (description or '').lower()
     for tok in [t.strip().lower() for t in boards.split(',') if t.strip()]:
-        patterns.extend(BOARD_MATCH.get(tok, [re.escape(tok)]))
-    if not patterns:
-        return True
-    return any(re.search(p, text) for p in patterns)
+        pats = BOARD_MATCH.get(tok)
+        if pats is None:  # unrecognized token: be generous, match on title
+            if re.search(re.escape(tok), title_l):
+                return True
+            continue
+        if any(re.search(p, title_l) for p in pats):
+            return True
+        if tok == 'aldermen' and 'board of aldermen committee' in desc_l:
+            return True
+    return False
 
 def send_meeting_notification(meeting, subscribers):
     start = meeting['start_time']
@@ -268,9 +280,8 @@ def send_meeting_notification(meeting, subscribers):
             attachments.append((str(filepath), row[1]))
     conn2.close()
     
-    match_text = f"{meeting.get('title') or ''} {meeting.get('description') or ''}"
     for sub in subscribers:
-        if not boards_match(sub['boards'], match_text):
+        if not boards_match(sub['boards'], meeting.get('title'), meeting.get('description')):
             continue
         send_email(sub['email'], subject, html_body.replace('{email}', sub['email']), attachments)
 
@@ -282,8 +293,8 @@ def check_upcoming_documents():
     c = conn.cursor()
     
     c.execute("""
-        SELECT id, title, event_url, sponsor FROM meetings 
-        WHERE start_time > datetime('now') 
+        SELECT id, title, event_url, sponsor, description FROM meetings
+        WHERE start_time > datetime('now')
         AND start_time < datetime('now', '+45 days')
         AND event_url IS NOT NULL
     """)
@@ -293,7 +304,7 @@ def check_upcoming_documents():
     new_docs_found = []
     
     for m in meetings:
-        mid, title, url, sponsor = m[0], m[1], m[2], m[3]
+        mid, title, url, sponsor, description = m[0], m[1], m[2], m[3], m[4]
         docs = scrape_event_page(url)
         
         for doc in docs:
@@ -306,7 +317,7 @@ def check_upcoming_documents():
                 c.execute('INSERT INTO documents (meeting_id,doc_type,original_url,local_path,filename) VALUES (?,?,?,?,?)',
                     (mid, doc["type"], doc["url"], local_path, filename))
                 logger.info(f'New document for meeting {mid}: {filename}')
-                new_docs_found.append({"meeting_id": mid, "title": title, "filename": filename, "local_path": local_path, "sponsor": sponsor})
+                new_docs_found.append({"meeting_id": mid, "title": title, "filename": filename, "local_path": local_path, "sponsor": sponsor, "description": description})
     
     conn.commit()
     
@@ -321,9 +332,8 @@ def check_upcoming_documents():
             filepath = PDF_DIR / doc_info["local_path"]
             attachments = [(str(filepath), doc_info["filename"])] if filepath.exists() else []
             
-            match_text = f"{doc_info['title'] or ''} {doc_info['sponsor'] or ''}"
             for sub in subscribers:
-                if not boards_match(sub["boards"], match_text):
+                if not boards_match(sub["boards"], doc_info["title"], doc_info.get("description", "")):
                     continue
                 send_email(sub["email"], subject, html_body.replace("{email}", sub["email"]), attachments)
     
