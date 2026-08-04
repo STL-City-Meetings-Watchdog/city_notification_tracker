@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import os, re, sqlite3, hashlib, smtplib, logging, threading, time
+import os, re, sqlite3, hashlib, smtplib, logging, threading, time, fcntl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -218,6 +218,37 @@ def send_email(to_email, subject, html_body, attachments=None):
         logger.error(f"Failed to send email: {e}")
         return False
 
+# --- Board / topic filtering -------------------------------------------------
+# Subscribers can narrow to a board group on the subscribe form. The iCal feed
+# does NOT populate a usable "sponsor" field (it is empty on every event), so we
+# match the subscriber's chosen keywords against the meeting's title/description
+# instead. Matching is deliberately generous: for a public-notice service,
+# over-notifying is far better than silently dropping a subscriber.
+BOARD_MATCH = {
+    'aldermen': [r'\balderman', r'\baldermen\b', r'\baldermanic\b', r'board of aldermen'],
+    'sldc':     [r'\bsldc\b', r'st\.? ?louis development', r'development corporation'],
+    'lcra':     [r'\blcra\b', r'land clearance'],
+    'piea':     [r'\bpiea\b', r'planned industrial'],
+    'tif':      [r'\btif\b', r'tax increment'],
+    'zoning':   [r'\bzoning\b'],
+    'planning': [r'\bplanning\b'],
+}
+
+def boards_match(boards, text):
+    """Whether a subscriber with this `boards` selection should receive a meeting
+    whose searchable `text` (title + description) is given. 'all', empty, or an
+    unrecognized selection => always True, so a subscriber is never silently
+    dropped."""
+    if not boards or boards.strip().lower() == 'all':
+        return True
+    text = (text or '').lower()
+    patterns = []
+    for tok in [t.strip().lower() for t in boards.split(',') if t.strip()]:
+        patterns.extend(BOARD_MATCH.get(tok, [re.escape(tok)]))
+    if not patterns:
+        return True
+    return any(re.search(p, text) for p in patterns)
+
 def send_meeting_notification(meeting, subscribers):
     start = meeting['start_time']
     if isinstance(start, str):
@@ -237,11 +268,10 @@ def send_meeting_notification(meeting, subscribers):
             attachments.append((str(filepath), row[1]))
     conn2.close()
     
+    match_text = f"{meeting.get('title') or ''} {meeting.get('description') or ''}"
     for sub in subscribers:
-        boards = sub['boards']
-        if boards and boards != 'all':
-            board_list = [b.strip().lower() for b in boards.split(',')]
-            if not any(b in (meeting['sponsor'] or '').lower() for b in board_list): continue
+        if not boards_match(sub['boards'], match_text):
+            continue
         send_email(sub['email'], subject, html_body.replace('{email}', sub['email']), attachments)
 
 
@@ -291,12 +321,10 @@ def check_upcoming_documents():
             filepath = PDF_DIR / doc_info["local_path"]
             attachments = [(str(filepath), doc_info["filename"])] if filepath.exists() else []
             
+            match_text = f"{doc_info['title'] or ''} {doc_info['sponsor'] or ''}"
             for sub in subscribers:
-                boards = sub["boards"]
-                if boards and boards != "all":
-                    board_list = [b.strip().lower() for b in boards.split(",")]
-                    if not any(b in (doc_info["sponsor"] or "").lower() for b in board_list):
-                        continue
+                if not boards_match(sub["boards"], match_text):
+                    continue
                 send_email(sub["email"], subject, html_body.replace("{email}", sub["email"]), attachments)
     
     conn.close()
@@ -424,17 +452,50 @@ def api_meetings():
     conn.close()
     return jsonify(m)
 
+def scheduled_job():
+    """Full refresh: pull new meetings (which emails subscribers about brand-new
+    meetings), then re-scrape upcoming meetings for newly posted documents (which
+    emails subscribers about those). Run sequentially so the two never write to
+    the SQLite DB concurrently."""
+    try:
+        sync_meetings()
+    except Exception as e:
+        logger.error(f"sync_meetings failed: {e}")
+    try:
+        check_upcoming_documents()
+    except Exception as e:
+        logger.error(f"check_upcoming_documents failed: {e}")
+
 def run_scheduler():
-    schedule.every(13).hours.do(sync_meetings)
+    schedule.every(12).hours.do(scheduled_job)
     while True:
         schedule.run_pending()
         time.sleep(60)
 
+_scheduler_lock_fh = None
+def acquire_scheduler_lock():
+    """Only ONE gunicorn worker may run the scheduler (each worker imports this
+    module). The worker that wins an exclusive flock on a file in the shared data
+    volume runs it; if that worker dies the OS releases the lock and a
+    replacement worker picks it up on its next start."""
+    global _scheduler_lock_fh
+    try:
+        fh = open(DATA_DIR / ".scheduler.lock", "w")
+        fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        _scheduler_lock_fh = fh  # keep the handle for the process lifetime
+        return True
+    except OSError:
+        return False
+
 init_db()
 
-# Start scheduler thread (runs under gunicorn too)
-scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
-scheduler_thread.start()
+# Start the scheduler in exactly one worker.
+if acquire_scheduler_lock():
+    logger.info("Scheduler lock acquired - starting scheduler in this worker")
+    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+    scheduler_thread.start()
+else:
+    logger.info("Scheduler lock held by another worker - not scheduling here")
 
 if __name__ == '__main__':
     sync_meetings()
