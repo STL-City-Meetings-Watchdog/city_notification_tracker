@@ -490,7 +490,12 @@ def acquire_scheduler_lock():
     """Only ONE gunicorn worker may run the scheduler (each worker imports this
     module). The worker that wins an exclusive flock on a file in the shared data
     volume runs it; if that worker dies the OS releases the lock and a
-    replacement worker picks it up on its next start."""
+    replacement worker picks it up on its next start.
+    Known gap: this only covers a worker that DIES. A worker that hangs while
+    staying alive (e.g. deadlocked) keeps the fd open forever, so no other
+    worker can take over the scheduler and nothing fails loudly - gunicorn's
+    own --timeout only recycles a worker whose main request-handling thread
+    stalls, not a stuck background thread. Accepted risk for now."""
     global _scheduler_lock_fh
     try:
         fh = open(DATA_DIR / ".scheduler.lock", "w")
