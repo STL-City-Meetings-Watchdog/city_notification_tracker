@@ -287,45 +287,60 @@ def send_meeting_notification(meeting, subscribers):
 
 
 def check_upcoming_documents():
-    """Re-scrape meetings in next 45 days for new documents"""
-    logger.info('Checking meetings in next 45 days for new documents...')
+    """Re-scrape recent + upcoming meetings for newly-posted documents.
+
+    Window spans the last 30 days through the next 45 days. The City routinely
+    posts agendas/packets ~24h before a meeting -- and sometimes day-of or
+    after -- long after we first ingested the calendar event, so a forward-only
+    window silently misses those materials (see #45; e.g. meeting 268).
+
+    Documents found on meetings that have ALREADY happened are archived
+    silently: only still-upcoming meetings trigger the "New Document Added"
+    email. That keeps this widened window from ever producing a retroactive
+    notification blast when it sweeps the recent-past backlog.
+    """
+    logger.info('Checking meetings (-30d .. +45d) for new documents...')
     conn = get_db()
     c = conn.cursor()
-    
+
     c.execute("""
-        SELECT id, title, event_url, sponsor, description FROM meetings
-        WHERE start_time > datetime('now')
+        SELECT id, title, event_url, sponsor, description,
+               (start_time >= datetime('now')) AS is_upcoming
+        FROM meetings
+        WHERE start_time > datetime('now', '-30 days')
         AND start_time < datetime('now', '+45 days')
         AND event_url IS NOT NULL
     """)
     meetings = c.fetchall()
-    logger.info(f'Found {len(meetings)} meetings in next 45 days')
-    
+    logger.info(f'Found {len(meetings)} meetings in window (-30d .. +45d)')
+
     new_docs_found = []
-    
+
     for m in meetings:
-        mid, title, url, sponsor, description = m[0], m[1], m[2], m[3], m[4]
+        mid, title, url, sponsor, description, is_upcoming = m[0], m[1], m[2], m[3], m[4], m[5]
         docs = scrape_event_page(url)
-        
+
         for doc in docs:
             c.execute('SELECT id FROM documents WHERE meeting_id=? AND filename=?', (mid, doc["filename"]))
             if c.fetchone():
                 continue
-            
+
             local_path, filename = download_document(doc["url"], mid, doc["type"])
             if local_path:
                 c.execute('INSERT INTO documents (meeting_id,doc_type,original_url,local_path,filename) VALUES (?,?,?,?,?)',
                     (mid, doc["type"], doc["url"], local_path, filename))
-                logger.info(f'New document for meeting {mid}: {filename}')
-                new_docs_found.append({"meeting_id": mid, "title": title, "filename": filename, "local_path": local_path, "sponsor": sponsor, "description": description})
-    
+                logger.info(f'New document for meeting {mid} ({"upcoming" if is_upcoming else "past/silent"}): {filename}')
+                new_docs_found.append({"meeting_id": mid, "title": title, "filename": filename, "local_path": local_path, "sponsor": sponsor, "description": description, "is_upcoming": is_upcoming})
+
     conn.commit()
-    
-    if new_docs_found:
+
+    # Only notify for still-upcoming meetings; past-meeting docs are archived silently.
+    notifiable = [d for d in new_docs_found if d["is_upcoming"]]
+    if notifiable:
         c.execute('SELECT * FROM subscribers WHERE verified=1')
         subscribers = [dict(row) for row in c.fetchall()]
-        
-        for doc_info in new_docs_found:
+
+        for doc_info in notifiable:
             subject = "New Document: " + doc_info["title"][:50]
             html_body = "<html><body style=\"font-family:Arial\"><h2 style=\"color:#1a365d\">New Document Added</h2><p><b>Meeting:</b> " + doc_info["title"] + "</p><p><b>New Document:</b> " + doc_info["filename"] + "</p><p><a href=\"" + BASE_URL + "/meeting/" + str(doc_info["meeting_id"]) + "\" style=\"background:#c03221;color:white;padding:10px 20px;text-decoration:none\">View Meeting</a></p><hr><p style=\"font-size:12px;color:#666\"><a href=\"" + BASE_URL + "/unsubscribe?email={email}\">Unsubscribe</a></p></body></html>"
             
@@ -338,7 +353,9 @@ def check_upcoming_documents():
                 send_email(sub["email"], subject, html_body.replace("{email}", sub["email"]), attachments)
     
     conn.close()
-    logger.info(f'Document check done. {len(new_docs_found)} new documents found.')
+    silent = len(new_docs_found) - len(notifiable)
+    logger.info(f'Document check done. {len(new_docs_found)} new documents found '
+                f'({len(notifiable)} notified, {silent} past-meeting archived silently).')
 
 def sync_meetings():
     logger.info("Starting sync...")
