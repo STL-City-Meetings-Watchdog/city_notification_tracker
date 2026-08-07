@@ -233,6 +233,7 @@ BOARD_MATCH = {
     'zoning':   [r'\bzoning\b'],
     'planning': [r'\bplanning\b'],
 }
+VALID_BOARDS = set(BOARD_MATCH.keys()) | {'all'}
 
 def boards_match(boards, title, description=''):
     """Whether a subscriber with this `boards` selection should receive a meeting.
@@ -242,18 +243,16 @@ def boards_match(boards, title, description=''):
     which would spam development subscribers with every BOA meeting). Aldermanic
     standing committees don't carry "aldermen" in their title but identify
     themselves in the description ("...this board of aldermen committee
-    meeting..."), so 'aldermen' also matches on that phrase. 'all', empty, or an
-    unrecognized selection => always True, so a subscriber is never silently
-    dropped."""
+    meeting..."), so 'aldermen' also matches on that phrase. 'all' or empty
+    => always True. An unrecognized token never matches (subscribe-time
+    validation should prevent these; this is just a safety net for old rows)."""
     if not boards or boards.strip().lower() == 'all':
         return True
     title_l = (title or '').lower()
     desc_l = (description or '').lower()
     for tok in [t.strip().lower() for t in boards.split(',') if t.strip()]:
         pats = BOARD_MATCH.get(tok)
-        if pats is None:  # unrecognized token: be generous, match on title
-            if re.search(re.escape(tok), title_l):
-                return True
+        if pats is None:
             continue
         if any(re.search(p, title_l) for p in pats):
             return True
@@ -421,6 +420,10 @@ def subscribe():
         boards = request.form.get('boards','all')
         if not email or '@' not in email:
             return render_template('subscribe.html', error="Invalid email")
+        tokens = [t.strip().lower() for t in boards.split(',') if t.strip()]
+        if any(t not in VALID_BOARDS for t in tokens):
+            return render_template('subscribe.html', error="Invalid board selection")
+        boards = ','.join(tokens) or 'all'
         vt = hashlib.sha256(f"{email}{datetime.now()}".encode()).hexdigest()[:32]
         conn = get_db()
         c = conn.cursor()
