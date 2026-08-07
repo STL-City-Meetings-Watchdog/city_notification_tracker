@@ -256,7 +256,7 @@ def boards_match(boards, title, description=''):
             continue
         if any(re.search(p, title_l) for p in pats):
             return True
-        if tok == 'aldermen' and 'board of aldermen committee' in desc_l:
+        if tok == 'aldermen' and re.search(r'board\s+of\s+aldermen\s+committee', desc_l):
             return True
     return False
 
