@@ -280,9 +280,8 @@ def send_meeting_notification(meeting, subscribers):
     conn2.close()
     
     for sub in subscribers:
-        if not boards_match(sub['boards'], meeting.get('title'), meeting.get('description')):
-            continue
-        send_email(sub['email'], subject, html_body.replace('{email}', sub['email']), attachments)
+        if boards_match(sub['boards'], meeting.get('title'), meeting.get('description')):
+            send_email(sub['email'], subject, html_body.replace('{email}', sub['email']), attachments)
 
 
 def check_upcoming_documents():
