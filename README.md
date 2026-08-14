@@ -1,15 +1,5 @@
-
 # city_notification_tracker
 A website that keeps track of city meeting announcements, the agendas and minutes for those meetings, as well as new permits issued by the city. People can register for notifcations for when new meetings are published and view changes to the minutes and agendas over time. 
-
-## Hello to all my friends at `fraud@twilio.com`!
-
-- We really do control this website!
-- We really do want to add SMS functionality to this software! 
-- This text was deployed on August 12, 2026. 
-
-Your buds,
-The `city_notification_tracker` team. 
 
 ## Contributing to the project
 
