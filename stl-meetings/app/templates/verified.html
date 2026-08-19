@@ -4,7 +4,12 @@
 <div style="text-align:center;padding:40px 0">
     <h1 style="color:#28a745;font-size:3rem">✓</h1>
     <h2>You're subscribed!</h2>
-    <p style="margin:20px 0;color:#666">You'll receive email notifications when new meetings are posted.</p>
+    <p style="margin:20px 0;color:#666">You'll receive email notifications when new meetings are posted for:</p>
+    <ul class="doc-list" style="max-width:400px;margin:0 auto 30px;text-align:left">
+        {% for b in boards %}
+        <li>{{ b }}</li>
+        {% endfor %}
+    </ul>
     <a href="/" class="btn">Browse Meetings</a>
 </div>
 {% endblock %}

@@ -3,7 +3,9 @@
 {% block content %}
 <h2>Subscribe to Meeting Notifications</h2>
 <p style="margin-bottom:30px">Get email notifications when new meetings are posted.</p>
-{% if success %}<div class="alert alert-success"><strong>Check your email!</strong> We sent a confirmation link.</div>{% endif %}
+{% if success %}
+<div class="alert alert-success"><strong>Check your email!</strong> We sent a confirmation link.</div>
+{% endif %}
 {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
 {% if not success %}
 <form method="post" class="subscribe-form">

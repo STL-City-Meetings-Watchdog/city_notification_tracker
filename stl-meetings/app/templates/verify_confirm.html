@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Confirm Subscription - STL Meetings{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:40px 0">
+    <h2>Confirm your subscription</h2>
+    <p style="margin:20px 0;color:#666">You're about to subscribe to email notifications for:</p>
+    <ul class="doc-list" style="max-width:400px;margin:0 auto 30px;text-align:left">
+        {% for b in boards %}
+        <li>{{ b }}</li>
+        {% endfor %}
+    </ul>
+    <form method="post">
+        <input type="hidden" name="token" value="{{ token }}">
+        <button type="submit" class="btn">Confirm Subscription</button>
+    </form>
+</div>
+{% endblock %}
