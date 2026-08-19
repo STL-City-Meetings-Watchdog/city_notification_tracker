@@ -388,6 +388,7 @@ def index():
     conn.close()
     return render_template('index.html', upcoming=upcoming, past=past)
 
+
 @app.route('/meeting/<int:mid>')
 def meeting_detail(mid):
     conn = get_db()
