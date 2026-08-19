@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Subscribe - STL Meetings{% endblock %}
 {% block content %}
+<style>
+    #subscribe-form h3{margin:25px 0 10px}
+    #subscribe-form h3:first-child{margin-top:0}
+    #subscribe-form h4{margin:15px 0 8px;color:#1a365d}
+    #subscribe-form .board-option{font-weight:normal;margin-bottom:6px}
+    #subscribe-form .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+</style>
 <h2>Subscribe to Meeting Notifications</h2>
 <p style="margin-bottom:30px">Get email notifications when new meetings are posted.</p>
 {% if success %}
@@ -8,17 +15,59 @@
 {% endif %}
 {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
 {% if not success %}
-<form method="post" class="subscribe-form">
-    <label for="email">Email Address</label>
+<noscript><div class="alert alert-error">Picking specific meeting types below requires JavaScript. Please enable it, or use "Subscribe All".</div></noscript>
+<form method="post" class="subscribe-form" id="subscribe-form" style="max-width:500px">
+    <h3>Email Address</h3>
+    <label for="email" class="visually-hidden">Email Address</label>
     <input type="email" id="email" name="email" required placeholder="you@example.com">
-    <label for="boards">Which meetings?</label>
-    <select id="boards" name="boards">
-        <option value="all">All meetings</option>
-        <option value="aldermen">Board of Aldermen</option>
-        <option value="sldc,lcra,piea,tif">Development (SLDC, LCRA, etc.)</option>
-        <option value="zoning,planning">Zoning & Planning</option>
-    </select>
-    <button type="submit" class="btn">Subscribe</button>
+    <input type="hidden" name="boards" id="boards-field" value="all">
+
+    <h3>Subscribe to All Meetings</h3>
+    <button type="submit" id="subscribe-all-btn" class="btn">Subscribe to All Meetings</button>
+
+    <h3>Subscribe to Some Meetings</h3>
+
+    <h4>Board of Aldermen</h4>
+    <label class="board-option"><input type="checkbox" data-board="aldermen"> Board of Aldermen</label>
+
+    <h4>Development</h4>
+    <label class="board-option"><input type="checkbox" data-board="sldc"> SLDC</label>
+    <label class="board-option"><input type="checkbox" data-board="lcra"> LCRA</label>
+    <label class="board-option"><input type="checkbox" data-board="piea"> PIEA</label>
+    <label class="board-option"><input type="checkbox" data-board="tif"> TIF</label>
+
+    <h4>Zoning &amp; Planning</h4>
+    <label class="board-option"><input type="checkbox" data-board="zoning"> Zoning</label>
+    <label class="board-option"><input type="checkbox" data-board="planning"> Planning</label>
+
+    <button type="submit" id="subscribe-checked-btn" class="btn" style="margin-top:15px">Subscribe to Selected Meetings</button>
 </form>
+<script>
+(function () {
+    var boardsField = document.getElementById('boards-field');
+    var allBtn = document.getElementById('subscribe-all-btn');
+    var checkedBtn = document.getElementById('subscribe-checked-btn');
+    var checkboxes = document.querySelectorAll('#subscribe-form input[type="checkbox"][data-board]');
+
+    allBtn.addEventListener('click', function () {
+        boardsField.value = 'all';
+    });
+
+    checkedBtn.addEventListener('click', function (e) {
+        var selected = [];
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                selected.push(checkboxes[i].getAttribute('data-board'));
+            }
+        }
+        if (selected.length === 0) {
+            e.preventDefault();
+            alert('Select at least one meeting type.');
+            return;
+        }
+        boardsField.value = selected.join(',');
+    });
+})();
+</script>
 {% endif %}
 {% endblock %}
