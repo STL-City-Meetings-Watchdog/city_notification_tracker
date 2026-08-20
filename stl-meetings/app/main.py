@@ -497,7 +497,7 @@ def subscribe():
     send_email(
         email,
         "Verify STL Meetings subscription",
-        f'<html><body><h2>Confirm</h2><p><a href="{BASE_URL}/verify?token={vt}" style="background:#c03221;color:white;padding:10px 20px;text-decoration:none">Confirm Subscription</a></p></body></html>',
+        f'<html><body><h2>Confirm your subscription</h2><p>Click below to review and confirm what you signed up for.</p><p><a href="{BASE_URL}/verify?token={vt}" style="color:#c03221">Review your subscription request</a></p></body></html>',
     )
     return render_template("subscribe.html", success=True)
 
