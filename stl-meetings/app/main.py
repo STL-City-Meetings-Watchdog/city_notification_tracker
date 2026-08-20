@@ -503,7 +503,7 @@ def subscribe():
 
 @app.route('/verify', methods=['GET', 'POST'])
 def verify():
-    t = request.values.get('token', '')
+    token = request.values.get("token", "")
     conn = get_db()
     c = conn.cursor()
 
@@ -512,17 +512,23 @@ def verify():
         # prefetch, since it only reads state and never confirms anything.
         # Confirming requires an actual POST from the button below, which a
         # scanner fetching this page won't trigger.
-        c.execute("SELECT pending_boards FROM subscribers WHERE verify_token=?", (t,))
+        c.execute(
+            "SELECT pending_boards FROM subscribers WHERE verify_token=?", (token,)
+        )
         row = c.fetchone()
         conn.close()
         if not row:
             return ("Invalid or already-used link", 400)
-        return render_template('verify_confirm.html', token=t, boards=board_labels(row['pending_boards']))
+        return render_template(
+            "verify_confirm.html",
+            token=token,
+            boards=board_labels(row["pending_boards"]),
+        )
 
     # POST: verify_token is nulled out below once consumed, so a replay
     # (double-submit, or a confirm page left open in two tabs) matches no
     # rows instead of collapsing the just-activated subscription back out.
-    c.execute("SELECT pending_boards FROM subscribers WHERE verify_token=?", (t,))
+    c.execute("SELECT pending_boards FROM subscribers WHERE verify_token=?", (token,))
     row = c.fetchone()
     if not row:
         conn.close()
@@ -531,7 +537,7 @@ def verify():
     c.execute(
         "UPDATE subscribers SET verified_boards = pending_boards, pending_boards = '', verify_token = NULL "
         "WHERE verify_token=?",
-        (t,),
+        (token,),
     )
     conn.commit()
     conn.close()
