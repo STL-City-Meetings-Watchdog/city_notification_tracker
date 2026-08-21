@@ -276,13 +276,65 @@ BOARD_LABELS = {
     'planning': 'Planning',
 }
 
-def board_labels(boards):
-    """Human-readable labels for a stored boards string, for display on the
-    verify-confirm and verified pages."""
-    tokens = [t for t in boards.split(',') if t]
-    if not tokens or 'all' in tokens:
+# Category groupings for the subscribe form's checkboxes, and for grouping
+# the verify-confirm/verified pages' display to match. Single source of
+# truth - both subscribe.html and the /verify route pull their
+# board-to-group mapping from here.
+# Invariant: every non-'all' key in BOARD_MATCH (i.e. every token VALID_BOARDS
+# allows) must appear in exactly one group below - describe_boards() assumes
+# this and does not handle a token that isn't in any group.
+BOARD_GROUPS = [
+    ('Board of Aldermen', ['aldermen']),
+    ('Development', ['sldc', 'lcra', 'piea', 'tif']),
+    ('Land Use', ['zoning', 'planning']),
+]
+# Groups whose member boards get spelled out in parentheses, e.g.
+# "Development (SLDC, TIF)". Everything else just shows the group name -
+# right for "Board of Aldermen" (nothing more to say).
+GROUPS_WITH_BREAKDOWN = {'Development', 'Land Use'}
+
+def describe_boards(boards):
+    """Turn a stored boards string into a list of human-readable lines, one
+    per matched category in BOARD_GROUPS, for display on the verify-confirm
+    and verified pages.
+
+    A group in GROUPS_WITH_BREAKDOWN names which of its boards were picked;
+    every other group just shows its name.
+
+    Examples:
+        describe_boards('all')                    -> ['All meetings']
+        describe_boards('aldermen')                -> ['Board of Aldermen']
+        describe_boards('sldc,tif')                -> ['Development (SLDC, TIF)']
+        describe_boards('aldermen,sldc,zoning')    -> ['Board of Aldermen',
+                                                         'Development (SLDC)',
+                                                         'Land Use (Zoning)']
+    """
+    selected = set(boards.split(','))
+    if 'all' in selected:
         return [BOARD_LABELS['all']]
-    return [BOARD_LABELS.get(t, t) for t in tokens]
+
+    lines = []
+    for group_name, group_tokens in BOARD_GROUPS:
+        picked = [t for t in group_tokens if t in selected]
+        if not picked:
+            continue
+        if group_name in GROUPS_WITH_BREAKDOWN:
+            picked_labels = ', '.join(BOARD_LABELS[t] for t in picked)
+            lines.append(f"{group_name} ({picked_labels})")
+        else:
+            lines.append(group_name)
+    return lines
+
+# (label, data-board value) pairs for the subscribe form's checkboxes, one
+# per BOARD_GROUPS entry. Reuses describe_boards() on each group's full token
+# set so a checkbox's label always matches what the verify pages would show
+# for that same full selection, instead of the wording being written out
+# separately by hand. Computed once at import time - BOARD_GROUPS and
+# BOARD_LABELS are both static.
+BOARD_CHECKBOX_OPTIONS = [
+    (describe_boards(','.join(tokens))[0], ','.join(tokens))
+    for _, tokens in BOARD_GROUPS
+]
 
 def boards_match(boards, title, description=''):
     """Whether a subscriber with this `boards` selection should receive a meeting.
@@ -466,15 +518,15 @@ def search():
 @app.route('/subscribe', methods=['GET','POST'])
 def subscribe():
     if request.method == 'GET':
-        return render_template('subscribe.html')
+        return render_template('subscribe.html', checkbox_options=BOARD_CHECKBOX_OPTIONS)
 
     email = request.form.get('email','').strip().lower()
     boards = request.form.get('boards','all')
     if not email or '@' not in email:
-        return render_template('subscribe.html', error="Invalid email")
+        return render_template('subscribe.html', checkbox_options=BOARD_CHECKBOX_OPTIONS, error="Invalid email")
     tokens = [t.strip().lower() for t in boards.split(',') if t.strip()]
     if any(t not in VALID_BOARDS for t in tokens):
-        return render_template('subscribe.html', error="Invalid board selection")
+        return render_template('subscribe.html', checkbox_options=BOARD_CHECKBOX_OPTIONS, error="Invalid board selection")
     boards = ','.join(tokens) or 'all'
     vt = hashlib.sha256(f"{email}{datetime.now()}".encode()).hexdigest()[:32]
 
@@ -522,7 +574,7 @@ def verify():
         return render_template(
             "verify_confirm.html",
             token=token,
-            boards=board_labels(row["pending_boards"]),
+            boards=describe_boards(row["pending_boards"]),
         )
 
     # POST: verify_token is nulled out below once consumed, so a replay
@@ -541,7 +593,7 @@ def verify():
     )
     conn.commit()
     conn.close()
-    return render_template('verified.html', boards=board_labels(pending))
+    return render_template('verified.html', boards=describe_boards(pending))
 
 @app.route('/unsubscribe')
 def unsubscribe():

@@ -23,10 +23,12 @@
     <input type="hidden" name="boards" id="boards-field" value="all">
 
     <button type="submit" id="subscribe-all-btn" class="btn">Subscribe to All Meetings</button>
-    
-    <label class="board-option"><input type="checkbox" data-board="aldermen"> Board of Aldermen</label>
-    <label class="board-option"><input type="checkbox" data-board="sldc,lcra,piea,tif"> Development (SLDC, LCRA, PIEA, TIF)</label>
-    <label class="board-option"><input type="checkbox" data-board="zoning,planning"> Zoning &amp; Planning</label>
+
+    {% for label, value in checkbox_options %}
+    <label class="board-option">
+        <input type="checkbox" data-board="{{ value }}"> {{ label }}
+    </label>
+    {% endfor %}
 
     <button type="submit" id="subscribe-checked-btn" class="btn" style="margin-top:15px">Subscribe to Selected Meetings</button>
 </form>
