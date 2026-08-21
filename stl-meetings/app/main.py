@@ -57,26 +57,46 @@ def _migrate_subscribers_table(conn):
     """One-time migration from the old boards/verified columns to
     verified_boards/pending_boards (nothing is "verified" until a subscriber
     clicks their confirmation link, which copies pending_boards over into
-    verified_boards - see /verify). Idempotent: a second call is a no-op, so
-    it's safe to run from every worker under the init_db() lock below."""
+    verified_boards - see /verify). Runs from every worker under the
+    init_db() lock below, and each step is guarded by the schema it would
+    change, so it's safe to resume after a crash partway through: SQLite
+    auto-commits each ALTER TABLE the moment it runs (unlike the UPDATEs,
+    which stay pending until the explicit commit), so a worker killed
+    mid-migration can come back to a table with the new columns already
+    added but not yet backfilled, or backfilled but not yet cleaned up -
+    every step below checks for that instead of assuming all-or-nothing."""
     c = conn.cursor()
-    c.execute("PRAGMA table_info(subscribers)")
-    cols = {row[1] for row in c.fetchall()}
-    if "boards" not in cols:
+
+    def has_column(name):
+        c.execute("PRAGMA table_info(subscribers)")
+        return any(row[1] == name for row in c.fetchall())
+
+    if not has_column("boards"):
         return  # already migrated, or a fresh DB created with the new schema
     logger.info("Migrating subscribers: boards/verified -> verified_boards/pending_boards")
-    c.execute("ALTER TABLE subscribers ADD COLUMN verified_boards TEXT NOT NULL DEFAULT ''")
-    c.execute("ALTER TABLE subscribers ADD COLUMN pending_boards TEXT NOT NULL DEFAULT ''")
-    # Already-verified subscribers keep their active subscription as-is, and
-    # their old verify_token is nulled out - it was already spent confirming
-    # this same boards value, so it must not be replayable to re-confirm
-    # (which under the new schema would just copy '' over verified_boards).
-    # Anyone still mid-signup keeps their in-flight request as pending, so
-    # their existing (still-valid) verify_token continues to work.
-    c.execute("UPDATE subscribers SET verified_boards = boards, verify_token = NULL WHERE verified = 1")
-    c.execute("UPDATE subscribers SET pending_boards = boards WHERE verified = 0")
-    c.execute("ALTER TABLE subscribers DROP COLUMN boards")
-    c.execute("ALTER TABLE subscribers DROP COLUMN verified")
+
+    if not has_column("verified_boards"):
+        c.execute("ALTER TABLE subscribers ADD COLUMN verified_boards TEXT NOT NULL DEFAULT ''")
+    if not has_column("pending_boards"):
+        c.execute("ALTER TABLE subscribers ADD COLUMN pending_boards TEXT NOT NULL DEFAULT ''")
+
+    if has_column("verified"):
+        # Already-verified subscribers keep their active subscription as-is,
+        # and their old verify_token is nulled out - it was already spent
+        # confirming this same boards value, so it must not be replayable to
+        # re-confirm (which under the new schema would just copy '' over
+        # verified_boards). Anyone still mid-signup keeps their in-flight
+        # request as pending, so their existing (still-valid) verify_token
+        # continues to work. Committed now, before either old column is
+        # dropped, so this backfill is never lost even if the worker is
+        # killed immediately after.
+        c.execute("UPDATE subscribers SET verified_boards = boards, verify_token = NULL WHERE verified = 1")
+        c.execute("UPDATE subscribers SET pending_boards = boards WHERE verified = 0")
+        conn.commit()
+        c.execute("ALTER TABLE subscribers DROP COLUMN verified")
+
+    if has_column("boards"):
+        c.execute("ALTER TABLE subscribers DROP COLUMN boards")
 
 def init_db():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
