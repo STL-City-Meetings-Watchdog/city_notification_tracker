@@ -611,6 +611,9 @@ def verify():
         "WHERE verify_token=?",
         (token,),
     )
+    if c.rowcount == 0:
+        conn.close()
+        return ("Invalid or already-used link", 400)
     conn.commit()
     conn.close()
     return render_template('verified.html', boards=describe_boards(pending))
