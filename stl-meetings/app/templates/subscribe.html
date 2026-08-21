@@ -13,7 +13,7 @@
 {% endif %}
 {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
 {% if not success %}
-<noscript><div class="alert alert-error">Picking specific meeting types below requires JavaScript. Please enable it, or use "Subscribe All".</div></noscript>
+<noscript><div class="alert alert-error">Subscribing to specific meeting types requires JavaScript. Please enable it, or use "Subscribe to All Meetings" below.</div></noscript>
 <form method="post" class="subscribe-form" id="subscribe-form" style="max-width:500px">
     <label for="email">Email Address</label>
     <input type="email" id="email" name="email" required placeholder="you@example.com">
@@ -21,20 +21,28 @@
 
     <button type="submit" id="subscribe-all-btn" class="btn">Subscribe to All Meetings</button>
 
-    {% for label, value in checkbox_options %}
-    <label class="board-option">
-        <input type="checkbox" data-board="{{ value }}"> {{ label }}
-    </label>
-    {% endfor %}
+    <div id="some-meetings" style="display:none">
+        {% for label, value in checkbox_options %}
+        <label class="board-option">
+            <input type="checkbox" data-board="{{ value }}"> {{ label }}
+        </label>
+        {% endfor %}
 
-    <button type="submit" id="subscribe-checked-btn" class="btn" style="margin-top:15px">Subscribe to Selected Meetings</button>
+        <button type="submit" id="subscribe-checked-btn" class="btn" style="margin-top:15px">Subscribe to Selected Meetings</button>
+    </div>
 </form>
 <script>
 (function () {
     var boardsField = document.getElementById('boards-field');
     var allBtn = document.getElementById('subscribe-all-btn');
+    var someMeetings = document.getElementById('some-meetings');
     var checkedBtn = document.getElementById('subscribe-checked-btn');
     var checkboxes = document.querySelectorAll('#subscribe-form input[type="checkbox"][data-board]');
+
+    // Only shown once we know JS is running: picking specific boards relies
+    // on JS to aggregate the checkboxes into boards-field, so without it
+    // there's nothing here that would actually work.
+    someMeetings.style.display = 'block';
 
     allBtn.addEventListener('click', function () {
         boardsField.value = 'all';
