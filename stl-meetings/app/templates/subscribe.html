@@ -62,6 +62,23 @@
         }
         boardsField.value = selected.join(',');
     });
+
+    // Pressing Enter in the email field is an implicit submission, which the
+    // HTML spec routes through the form's FIRST submit button - "Subscribe to
+    // All Meetings" - firing its handler and overwriting boards with 'all'. So
+    // someone who ticked boxes and then hit Enter would silently be signed up
+    // for everything, with no hint their selection was discarded. Send that
+    // case to the button they actually meant instead.
+    document.getElementById('email').addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                e.preventDefault();
+                checkedBtn.click();
+                return;
+            }
+        }
+    });
 })();
 </script>
 {% endif %}
