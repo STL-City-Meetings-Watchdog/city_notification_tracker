@@ -329,9 +329,15 @@ def describe_boards(boards):
                                                          'Development (SLDC)',
                                                          'Land Use (Zoning)']
     """
-    selected = set(boards.split(','))
+    selected = {t for t in boards.split(',') if t}
     if 'all' in selected:
         return [BOARD_LABELS['all']]
+    if not selected:
+        # Not reachable from /subscribe (which always stores at least one
+        # token), but an empty string here means no notifications at all -
+        # every notification query filters on verified_boards != '' - so
+        # don't render it as a blank list that looks like a page bug.
+        return ['(no meeting types selected)']
 
     lines = []
     for group_name, group_tokens in BOARD_GROUPS:
