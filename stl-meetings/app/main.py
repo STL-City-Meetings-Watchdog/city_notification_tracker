@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import os, re, sqlite3, hashlib, smtplib, logging, threading, time, fcntl
+import os, re, sqlite3, secrets, smtplib, logging, threading, time, fcntl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -548,7 +548,11 @@ def subscribe():
     if any(t not in VALID_BOARDS for t in tokens):
         return render_template('subscribe.html', checkbox_options=BOARD_CHECKBOX_OPTIONS, error="Invalid board selection")
     boards = ','.join(tokens) or 'all'
-    vt = hashlib.sha256(f"{email}{datetime.now()}".encode()).hexdigest()[:32]
+    # Must be unguessable: this token is the ONLY thing standing between a
+    # stranger and someone else's verified_boards. The old sha256(email +
+    # timestamp) was derived entirely from values an attacker who triggered
+    # the signup already knows, so it was brute-forceable offline.
+    vt = secrets.token_urlsafe(32)
 
     conn = get_db()
     c = conn.cursor()
