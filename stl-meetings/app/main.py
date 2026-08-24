@@ -27,6 +27,7 @@ from bs4 import BeautifulSoup
 from weasyprint import HTML
 from flask import Flask, render_template, request, jsonify
 import schedule
+import secrets
 
 PROXY_URL = "https://stl-proxy.dan-f8a.workers.dev/?url="
 ICAL_URLS = [
@@ -548,7 +549,7 @@ def subscribe():
     if any(t not in VALID_BOARDS for t in tokens):
         return render_template('subscribe.html', checkbox_options=BOARD_CHECKBOX_OPTIONS, error="Invalid board selection")
     boards = ','.join(tokens) or 'all'
-    vt = hashlib.sha256(f"{email}{datetime.now()}".encode()).hexdigest()[:32]
+    vt = secrets.token_urlsafe(32)
 
     conn = get_db()
     c = conn.cursor()
