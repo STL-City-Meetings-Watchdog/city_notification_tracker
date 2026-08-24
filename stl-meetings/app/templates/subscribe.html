@@ -33,6 +33,7 @@
 </form>
 <script>
 (function () {
+    var emailField = document.getElementById('email');
     var boardsField = document.getElementById('boards-field');
     var allBtn = document.getElementById('subscribe-all-btn');
     var someMeetings = document.getElementById('some-meetings');
@@ -61,6 +62,13 @@
             return;
         }
         boardsField.value = selected.join(',');
+    });
+
+
+    email.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Don't submit using 'subscribe all'
+        }
     });
 })();
 </script>
