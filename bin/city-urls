@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Get the current git branch
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+if [ $? -ne 0 ]; then
+  echo "Error: Not in a git repository" >&2
+  exit 1
+fi
+
+if [ "$BRANCH" = "main" ]; then
+  echo "https://stlmeetings.veiledprofits.com/"
+  echo "https://permits.veiledprofits.com/"
+  echo "https://mopermits.veiledprofits.com/"
+elif [[ $BRANCH =~ ^f([0-9]+) ]]; then
+  # Extract the number from the branch name (e.g., f3 from f3-blah-blah)
+  FEATURE_NUM="${BASH_REMATCH[1]}"
+  echo "https://stlmeetings.${FEATURE_NUM}.dev.veiledprofits.com/"
+  echo "https://permits.${FEATURE_NUM}.dev.veiledprofits.com/"
+  echo "https://mopermits.${FEATURE_NUM}.dev.veiledprofits.com/"
+else
+  echo "Error: Branch '$BRANCH' does not match expected pattern (main or f-branch)" >&2
+  exit 1
+fi
