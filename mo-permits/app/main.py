@@ -90,6 +90,15 @@ PERMIT_TYPE_GROUPS = {
     'No Permit Required':  'No Permit Required',
 }
 
+# Filter values saved by older versions of the subscribe form, which never
+# matched DNR's data (or, for De Minimis, matched only as a substring).
+LEGACY_FILTER_VALUES = {
+    'St. Louis City':                'St. Louis (city)',
+    'Part 70 Operating Permit':      'Operating Permit: Part 70',
+    'Intermediate Operating Permit': 'Operating Permit: Intermediate',
+    'De Minimis':                    'Construction Permit: De Minimis',
+}
+
 def permit_type_matches(permit_type, value):
     pt, v = (permit_type or '').lower(), value.strip().lower()
     return pt == v or pt.startswith(v + ':')
@@ -174,10 +183,23 @@ def init_db():
             created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     ''')
+    _migrate_legacy_filters(c)
     conn.commit()
     conn.close()
     logger.info("Database initialized")
 
+def _migrate_legacy_filters(c):
+    """Rewrite saved subscriber filters that use pre-#65 values, and NULLs
+    (which crash notify_subscribers) as 'all'. Idempotent."""
+    c.execute('SELECT id, county_filter, permit_type_filter FROM subscribers')
+    for row in c.fetchall():
+        old = [row['county_filter'], row['permit_type_filter']]
+        new = [','.join(LEGACY_FILTER_VALUES.get(v.strip(), v.strip()) for v in (f or 'all').split(','))
+               for f in old]
+        if new != old:
+            c.execute('UPDATE subscribers SET county_filter=?, permit_type_filter=? WHERE id=?',
+                      (*new, row['id']))
+            logger.info(f"Subscriber {row['id']}: migrated filters {old} -> {new}")
 
 
 # ── DNR HTML scraper ────────────────────────────────────────────────────────────
