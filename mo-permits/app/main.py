@@ -66,20 +66,56 @@ MO_COUNTIES = [
     'Oregon','Osage','Ozark','Pemiscot','Perry','Pettis','Phelps','Pike',
     'Platte','Polk','Pulaski','Putnam','Ralls','Randolph','Ray','Reynolds',
     'Ripley','Saline','Schuyler','Scotland','Scott','Shannon','Shelby',
-    'St. Charles','St. Clair','St. Francois','St. Louis','St. Louis City',
+    'St. Charles','St. Clair','St. Francois','St. Louis','St. Louis (city)',
     'Ste. Genevieve','Stoddard','Stone','Sullivan','Taney','Texas','Vernon',
     'Warren','Washington','Wayne','Webster','Worth','Wright'
 ]
 
 
+# Values are MO DNR's own permit_type strings, which read "<Category>: <Subtype>"
+# (e.g. "Operating Permit: Part 70"). A value matches a permit whose type is
+# exactly that string, or starts with it followed by ':', so the umbrella
+# options ("Construction Permit") cover every subtype. See permit_type_matches().
 PERMIT_TYPE_GROUPS = {
-    'Construction': 'Construction Permit',
-    'Operating':    'Operating Permit',
-    'Part 70':      'Part 70 Operating Permit',
-    'Intermediate': 'Intermediate Operating Permit',
-    'General':      'General Permit',
-    'De Minimis':   'De Minimis',
+    'Construction (all)':  'Construction Permit',
+    'De Minimis':          'Construction Permit: De Minimis',
+    'Minor':               'Construction Permit: Minor',
+    'Portable Plant':      'Construction Permit: Portable Plant',
+    'Permit-by-Rule':      'Construction Permit: Permit-by-Rule',
+    'Temporary':           'Construction Permit: Temporary',
+    'PSD':                 'Construction Permit: Prevention of Significant Deterioration',
+    'Operating (all)':     'Operating Permit',
+    'Part 70':             'Operating Permit: Part 70',
+    'Intermediate':        'Operating Permit: Intermediate',
+    'No Permit Required':  'No Permit Required',
 }
+
+def permit_type_matches(permit_type, value):
+    pt, v = (permit_type or '').lower(), value.strip().lower()
+    return pt == v or pt.startswith(v + ':')
+
+def permit_matches(p, county_filter, type_filter):
+    """Does permit/application p pass a subscriber's saved filters?"""
+    c_match = county_filter == 'all' or any(
+        (p['county'] or '').lower() == cf.strip().lower()
+        for cf in county_filter.split(','))
+    t_match = type_filter == 'all' or any(
+        permit_type_matches(p['permit_type'], tf)
+        for tf in type_filter.split(','))
+    return c_match and t_match
+
+def filter_sql(county, ptype):
+    """WHERE clauses + params for the /search and /pending dropdowns.
+    Same rules as permit_matches(), in SQL — keep the two in step."""
+    where, params = [], []
+    if county:
+        where.append('county = ? COLLATE NOCASE')
+        params.append(county)
+    if ptype:
+        like = re.sub(r'([\\%_])', r'\\\1', ptype) + ':%'
+        where.append("(permit_type = ? COLLATE NOCASE OR permit_type LIKE ? ESCAPE '\\')")
+        params += [ptype, like]
+    return where, params
 
 # ── Database ────────────────────────────────────────────────────────────────────
 def get_db():
@@ -141,6 +177,7 @@ def init_db():
     conn.commit()
     conn.close()
     logger.info("Database initialized")
+
 
 
 # ── DNR HTML scraper ────────────────────────────────────────────────────────────
@@ -453,16 +490,7 @@ def notify_subscribers(new_permits):
     for sub in subscribers:
         county_filter = sub.get('county_filter', 'all')
         type_filter   = sub.get('permit_type_filter', 'all')
-        matching = []
-        for p in new_permits:
-            c_match = county_filter == 'all' or any(
-                p['county'].lower() == cf.strip().lower()
-                for cf in county_filter.split(','))
-            t_match = type_filter == 'all' or any(
-                tf.strip().lower() in p['permit_type'].lower()
-                for tf in type_filter.split(','))
-            if c_match and t_match:
-                matching.append(p)
+        matching = [p for p in new_permits if permit_matches(p, county_filter, type_filter)]
         if matching:
             _send_permit_digest(sub['email'], matching, sub['unsubscribe_token'])
 
@@ -517,16 +545,7 @@ def notify_subscribers_pending(new_pending):
     for sub in subscribers:
         county_filter = sub.get('county_filter', 'all')
         type_filter   = sub.get('permit_type_filter', 'all')
-        matching = []
-        for p in new_pending:
-            c_match = county_filter == 'all' or any(
-                p['county'].lower() == cf.strip().lower()
-                for cf in county_filter.split(','))
-            t_match = type_filter == 'all' or any(
-                tf.strip().lower() in p['permit_type'].lower()
-                for tf in type_filter.split(','))
-            if c_match and t_match:
-                matching.append(p)
+        matching = [p for p in new_pending if permit_matches(p, county_filter, type_filter)]
         if matching:
             _send_pending_digest(sub['email'], matching, sub['unsubscribe_token'])
 
@@ -632,12 +651,9 @@ def search():
     if q:
         where.append('(facility_name LIKE ? OR permit_number LIKE ? OR site_id LIKE ?)')
         params += [f'%{q}%', f'%{q}%', f'%{q}%']
-    if county:
-        where.append('county LIKE ?')
-        params.append(f'%{county}%')
-    if ptype:
-        where.append('permit_type LIKE ?')
-        params.append(f'%{ptype}%')
+    fwhere, fparams = filter_sql(county, ptype)
+    where  += fwhere
+    params += fparams
 
     sql_base = f"FROM permits WHERE {' AND '.join(where)}"
     c.execute(f"SELECT COUNT(*) {sql_base}", params)
@@ -767,12 +783,9 @@ def pending():
     if q:
         where.append('(facility_name LIKE ? OR application_number LIKE ? OR site_id LIKE ?)')
         params += [f'%{q}%', f'%{q}%', f'%{q}%']
-    if county:
-        where.append('county LIKE ?')
-        params.append(f'%{county}%')
-    if ptype:
-        where.append('permit_type LIKE ?')
-        params.append(f'%{ptype}%')
+    fwhere, fparams = filter_sql(county, ptype)
+    where  += fwhere
+    params += fparams
 
     sql_base = f"FROM pending_permits WHERE {' AND '.join(where)}"
     c.execute(f"SELECT COUNT(*) {sql_base}", params)
