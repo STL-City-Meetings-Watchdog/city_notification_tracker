@@ -86,19 +86,19 @@
   {% if total_pages > 1 %}
   <div class="pagination">
     {% if page > 1 %}
-    <a href="?q={{ q }}&county={{ county }}&type={{ ptype }}&page={{ page - 1 }}">&laquo; Prev</a>
+    <a href="?{{ {"q": q, "county": county, "type": ptype}|urlencode }}&page={{ page - 1 }}">&laquo; Prev</a>
     {% endif %}
 
     {% for p in range([1, page-2]|max, [total_pages+1, page+3]|min) %}
       {% if p == page %}
       <span class="current">{{ p }}</span>
       {% else %}
-      <a href="?q={{ q }}&county={{ county }}&type={{ ptype }}&page={{ p }}">{{ p }}</a>
+      <a href="?{{ {"q": q, "county": county, "type": ptype}|urlencode }}&page={{ p }}">{{ p }}</a>
       {% endif %}
     {% endfor %}
 
     {% if page < total_pages %}
-    <a href="?q={{ q }}&county={{ county }}&type={{ ptype }}&page={{ page + 1 }}">Next &raquo;</a>
+    <a href="?{{ {"q": q, "county": county, "type": ptype}|urlencode }}&page={{ page + 1 }}">Next &raquo;</a>
     {% endif %}
   </div>
   {% endif %}

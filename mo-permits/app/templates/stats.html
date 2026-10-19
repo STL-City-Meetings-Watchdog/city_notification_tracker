@@ -59,7 +59,7 @@
         {% for row in by_county %}
         <div style="display:flex;justify-content:space-between;align-items:center;
                     padding:5px 0;border-bottom:1px solid var(--border);font-size:.875rem;">
-          <a href="/search?county={{ row.county }}">{{ row.county }}</a>
+          <a href="/search?county={{ row.county|urlencode }}">{{ row.county }}</a>
           <strong style="color:var(--blue);">{{ "{:,}".format(row.cnt) }}</strong>
         </div>
         {% endfor %}
