@@ -39,6 +39,13 @@ from datetime import datetime, timedelta, timezone
 
 API = "https://stlouismo.api.civicclerk.com/v1"
 PORTAL = "https://stlouismo.portal.civicclerk.com/event/{}/files"
+
+# Identify ourselves. As of 2026-10-19 this API returns 403 to the default
+# "Python-urllib/*" User-Agent that urlopen sends, while curl's UA, an EMPTY
+# UA, and this string all return 200 - so the refusal keys on that one
+# string, not on the request itself. Sending a name and a URL is more honest
+# than either the library default or the empty UA that also works.
+UA = "STL-Meetings-Archive/1.0 (+https://stlmeetings.veiledprofits.com)"
 TYPE_MAP = {"Agenda": "agenda", "Agenda Packet": "agenda_packet",
             "Minutes": "minutes", "Other": "document"}
 
@@ -94,7 +101,8 @@ def toks(s):
 
 
 def api_get(url, timeout=90):
-    with urllib.request.urlopen(url, timeout=timeout) as r:
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()
 
 
