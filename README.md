@@ -10,7 +10,7 @@ The rest of this document is technical for developers.
 ## Working with Python
 
 We use `uv` and `direnv` to manage python virtual environments. 
-Currently since there are three basically indepenenent projects, each has its own independent python virtual environment. 
+Currently since there are four basically indepenenent projects, each has its own independent python virtual environment. 
 
 At time of writing, the proper version of Python is 3.14.5. This is mentioned numerous times in this file, as well as in the Dockerfiles. All should be synced manually, by you YES YOU typing. 
 
@@ -22,7 +22,7 @@ I installed `uv` from their installation page, then installed the correct python
 1. View the [uv docs](https://docs.astral.sh/uv/getting-started/installation/) and install `uv`.
 1. View the [direnv docs](https://direnv.net/docs/installation.html) and install `direnv`. TLDR on Mac: `brew install direnv`. Then do [hook installation](https://direnv.net/docs/hook.html). If you don't know if you're using `bash` or `zsh`, then know that on Linux you're probably using `bash`, and on Mac you're probably using `zsh`. 
 1. Have `uv` install the right python version - `3.14.5`. List the available versions with `uv python list` and install the right one with something like `uv python install cpython-3.14.5-linux-x86_64-gnu` (the version string will be different on Mac). 
-1. For each of `stl-meetings`, `stl-permits`, and `mo-permits`, `cd` to that directory then:
+1. For each of `stl-meetings`, `stl-permits`, `mo-permits`, and `stl-topics`, `cd` to that directory then:
 
     ```
     cd app
@@ -31,7 +31,7 @@ I installed `uv` from their installation page, then installed the correct python
     direnv allow
     uv sync # should print satisfying logs about installing packages
     ```
-1. Test it. For each of `stl-meetings`, `stl-permits`, and `mo-permits`, `cd` to that directory's `app` subdir, then examine the output of `which python` - it should be something really long like `/home/dm/city_notification_tracker/stl-meetings/app/.venv/bin/python`, and definitely should not be something system-sounding like `/bin/python` or `/usr/bin/python`. 
+1. Test it. For each of `stl-meetings`, `stl-permits`, `mo-permits`, and `stl-topics`, `cd` to that directory's `app` subdir, then examine the output of `which python` - it should be something really long like `/home/dm/city_notification_tracker/stl-meetings/app/.venv/bin/python`, and definitely should not be something system-sounding like `/bin/python` or `/usr/bin/python`. 
 
 ### Updating python / uv versions for local dev
 
@@ -39,7 +39,7 @@ Try something along the lines of:
 
 ```
 uv self update
-for d in stl-meetings stl-permits mo-permits; do
+for d in stl-meetings stl-permits mo-permits stl-topics; do
   pushd $d/app
   uv venv --python cpython-3.14.5-linux-x86_64-gnu # your version here
   uv sync
@@ -228,7 +228,7 @@ For example, if you are making an ephemeral environment for issue 9, you could n
 
 One you have your branch created and have pushed to github, a new ephemeral environment will automatically deploy online. To reach it, go to the url of the following format: subdomain.ISSUE_NUM.dev.veiledprofits.com 
 Using the above example, to go to the ephemeral dev environment for the stl meetings subdomain for issue 9, you would go to the following url: stlmeetings.9.dev.veiledprofits.com 
-(note that the three available subdomains are as follows: permits, mopermits, and stlmeetings). 
+(note that the four available subdomains are as follows: permits, mopermits, stlmeetings, and stl-topics). 
 
 The behavior of the ephemeral testing environments in terms of how they are deployed is handled by a github actions workflow. The yaml file for that workflow is found at .github/workflows/development.yml
 

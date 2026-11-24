@@ -38,12 +38,19 @@ jobs:
         rm -rf /srv/dev/$ISSUE_ID/stl-meetings/data
         rm -rf /srv/dev/$ISSUE_ID/stl-permits/data
         rm -rf /srv/dev/$ISSUE_ID/mo-permits/data
+        rm -rf /srv/dev/$ISSUE_ID/stl-topics/data
         mkdir -p /srv/dev/$ISSUE_ID/stl-meetings/data
         mkdir -p /srv/dev/$ISSUE_ID/stl-permits/data
         mkdir -p /srv/dev/$ISSUE_ID/mo-permits/data
+        mkdir -p /srv/dev/$ISSUE_ID/stl-topics/data
         cp -R /srv/prod/stl-meetings/data /srv/dev/$ISSUE_ID/stl-meetings/
         cp -R /srv/prod/stl-permits/data  /srv/dev/$ISSUE_ID/stl-permits/
         cp -R /srv/prod/mo-permits/data   /srv/dev/$ISSUE_ID/mo-permits/
+        # stl-topics has no prod data yet; once it does, copy it like the others
+        # (and scrub its subscribers table below).
+        if [ -d /srv/prod/stl-topics/data ]; then
+          cp -R /srv/prod/stl-topics/data /srv/dev/$ISSUE_ID/stl-topics/
+        fi
         which sqlite3 || sudo apt-get install -y sqlite3
         sqlite3 /srv/dev/$ISSUE_ID/stl-meetings/data/meetings.db "DELETE FROM subscribers;"
         sqlite3 /srv/dev/$ISSUE_ID/stl-permits/data/permits.db   "DELETE FROM subscribers;"

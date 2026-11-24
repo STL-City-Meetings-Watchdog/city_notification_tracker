@@ -47,6 +47,24 @@ services:
       - "traefik.http.routers.stl-permits-${ENVIRONMENT_NICKNAME}.tls.certresolver=letsencrypt"
       - "traefik.http.services.stl-permits-${ENVIRONMENT_NICKNAME}.loadbalancer.server.port=8000"
 
+  stl-topics:
+    image: stl-topics-${ENVIRONMENT_NICKNAME}
+    container_name: stl-topics-${ENVIRONMENT_NICKNAME}
+    build: ./stl-topics/app
+    restart: unless-stopped
+    environment:
+      - BASE_URL=https://stl-topics.${TARGET_DOMAIN}
+    volumes:
+      - ${PERSISTENCE_DIR}/stl-topics/data:/app/data
+    networks:
+      - traefik-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stl-topics-${ENVIRONMENT_NICKNAME}.rule=Host(`stl-topics.${TARGET_DOMAIN}`)"
+      - "traefik.http.routers.stl-topics-${ENVIRONMENT_NICKNAME}.entrypoints=websecure"
+      - "traefik.http.routers.stl-topics-${ENVIRONMENT_NICKNAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.stl-topics-${ENVIRONMENT_NICKNAME}.loadbalancer.server.port=8000"
+
   mo-permits:
     image: mo-permits-${ENVIRONMENT_NICKNAME}
     container_name: mo-permits-${ENVIRONMENT_NICKNAME}
